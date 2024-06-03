@@ -27,15 +27,13 @@ document.getElementById('file').addEventListener('change', async function(event)
     })
     .then(data => console.log(data))
     .catch(error => console.error('Error:', error));
-    
-     
 });
 
 document.getElementById('convert-btn').addEventListener('click', async function (event) {
     event.preventDefault();
     
     let filetypeToConvertTo = document.getElementById('format').value;
-    console.log(filetypeToConvertTo)
+    console.log(filetypeToConvertTo);
     let logs = document.getElementById('logs');
     logs.innerHTML = "Converting to " + filetypeToConvertTo;
 
@@ -57,10 +55,16 @@ document.getElementById('convert-btn').addEventListener('click', async function 
         let a = document.createElement('a');
         a.href = url;
         a.download = `converted_file.${filetypeToConvertTo}`;
-        document.body.appendChild(a); 
-        a.click();
-        a.remove();
-        logs.innerHTML = "Conversion successful!";
+        a.id = 'download-link';
+        
+        document.body.appendChild(a); // Append the link to the body
+        document.getElementById('download-btn').style.display = 'block'; // Show the download button
+        document.getElementById('download-btn').onclick = function() {
+            a.click(); // Trigger the click on the hidden link
+            a.remove(); // Remove the link from the DOM after clicking
+        };
+
+        logs.innerHTML = "Conversion successful! Click the button to download.";
     } catch (error) {
         logs.innerHTML = "Conversion failed: " + error.message;
     }

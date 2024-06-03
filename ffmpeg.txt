@@ -1,0 +1,14 @@
+-i : Import file
+-c:v : change video codec
+-c:a : change audio codec
+-b:v : change video bitrate
+-b:a : change audio bitrate
+-r : change frame rate
+-vf : add video filters
+-vn : ignore video
+-an : ignore audio
+
+ffmpeg -i inputfile.mp4 -c:v mpeg4 -c:a mp3 -b:v -r 30 1M -vf scale=1920:1080 eq=brightness=0.5 outputfile.mov
+
+Add subtitles using srt/ass file
+ffmpeg -i input.mp4 -vf "subtitles=subtitles.srt" -c:a copy output.mp4

@@ -18,13 +18,24 @@
                 <label for="format">Choose format to convert to:</label>
                 <select id="format" name="format" style="display:none;">
                     <option value="mp4">mp4</option>
+                    <option value="mov">mov</option>
+                    <option value="avi">avi</option>
+                    <option value="mkv">mkv</option>
+                    <option value="flv">flv</option>
+                    <option value="wmv">wmv</option>
+                    <option value="webm">webm</option>
                     <option value="mp3">mp3</option>
+                    <option value="aac">aac</option>
+                    <option value="wav">wav</option>
+                    <option value="ogg">ogg</option>
+                    <option value="gif">gif</option>
                 </select>
             </div>
             <button id="convert-btn" type="submit" style="display:none;">Convert</button>
             <div id="progress">
                 <div id="bar"></div>
             </div>
+            <button id="download-btn" style="display:none;">Download Converted File</button>
         </form>
         <h2 id="logs">Test</h2>
         <div id="result"></div>

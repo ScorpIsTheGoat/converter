@@ -9,10 +9,31 @@ from fastapi.encoders import jsonable_encoder
 from pathlib import Path
 from pydantic import BaseModel
 import os
+import subprocess
 #import whisper
 import shutil
 import time
-import ffmpeg
+import ffmpeg 
+
+def convert(input_file, output_file, **args):
+    command = f'ffmpeg -i {input_file} '
+    
+    if 'vc' in args:
+        command += f'-c:v {args["vc"]} '
+    if 'ac' in args:
+        command += f'-c:a {args["ac"]} '
+    if 'vb' in args:
+        command += f'-b:v {args["vb"]} '
+    if 'ab' in args:
+        command += f'-b:a {args["ab"]} '
+    if 'framerate' in args:
+        command += f'-r {args["framerate"]} '
+    if 'resolution' in args:
+        command += f'-s {args["resolution"]} '
+
+    command += f'{output_file}'
+
+    return command
 
 class FileProperties:
     def __init__(self, file_path):
@@ -86,14 +107,15 @@ async def create_upload_file(file: UploadFile):
 async def convert_file(select_value: SelectValue):
     filetype = select_value.filetype
     original_file_path = save_to
-    converted_file_name = f'converted_file_{uploaded_file.file_name}.{filetype}'
-    print(filetype)
-    print(original_file_path)
-    print(converted_file_name)
-    
+    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + filetype)
+    command = convert(original_file_path, converted_file_name, vb="1000M") #ogg should be converted with high vb
+    print(command)
+    result = subprocess.run(command, capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)    
     try:       
         
-        return FileResponse(path=converted_file_path, filename=f"converted_file.{filetype}")
+        return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
