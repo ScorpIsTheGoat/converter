@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Converter</title>
+    <link rel="stylesheet" href="/static/converter.css">
+</head>
+<body>
+    <div class="container">
+        <h1>File Converter</h1>
+        <form id="upload-form" enctype="multipart/form-data" method="POST" action ="http://localhost:8000/upload/" enctype?"multipart/form-data">
+            <div class="form-group">
+                <label for="file">Choose a file to convert:</label>
+                <input type="file" id="file" name="file" required>
+            </div>
+            <div class="form-group" >
+                <label for="format">Choose format to convert to:</label>
+                <select id="format" name="format" style="display:none;">
+                    <option value="mp4">mp4</option>
+                    <option value="mov">mov</option>
+                    <option value="avi">avi</option>
+                    <option value="mkv">mkv</option>
+                    <option value="flv">flv</option>
+                    <option value="wmv">wmv</option>
+                    <option value="webm">webm</option>
+                    <option value="mp3">mp3</option>
+                    <option value="aac">aac</option>
+                    <option value="wav">wav</option>
+                    <option value="ogg">ogg</option>
+                    <option value="gif">gif</option>
+                </select>
+            </div>
+            <button id="convert-btn" type="submit" style="display:none;">Convert</button>
+            <div id="progress">
+                <div id="bar"></div>
+            </div>
+            <button id="download-btn" style="display:none;">Download Converted File</button>
+        </form>
+        <div class="dropdown" style="display:none;">
+            <button class="dropbtn" onclick="toggleDropdown()">
+                Advanced Options
+                <span class="arrow">&#9660;</span> 
+            </button>
+            <div class="dropdown-content">
+                <form id="advanced-options-form">
+                    <label for="videocodec">Video-Codec:</label>
+                    <select id="videocodec" name="videocodec">
+                        <option value="None">-</option>
+                        <option value="h264">H.264</option>
+                        <option value="hevc">HEVC</option>
+                        <option value="vp9">VP9</option>
+                        <option value="huffyuv">HuffYUV</option>
+                    </select>
+                    <label for="audiocodec">Audio-Codec:</label>
+                    <select id="audiocodec" name="audiocodec">
+                        <option value="None">-</option>
+                        <option value="aac">AAC</option>
+                        <option value="libmp3lame">MP3</option>
+                        <option value="libopus">Opus</option>
+                        <option value="flac">Free Lossless</option>
+                        <option value="alac">Apple Lossless</option>
+                        <option value="libvorbis">Vorbis</option>
+                    </select>
+                    <label for="videobitrate">Video-Bitrate:</label>
+                    <select id="videobitrate" name="videobitrate">
+                        <option value="None">-</option>
+                        <option value="1000">1000 kbps</option>
+                        <option value="2000">2000 kbps</option>
+                        <option value="5000">5000 kbps</option>
+                    </select>
+                    <label for="audiobitrate">Audio-Bitrate:</label>
+                    <select id="audiobitrate" name="audiobitrate">
+                        <option value="None">-</option>
+                        <option value="1000">1000 kbps</option>
+                        <option value="2000">2000 kbps</option>
+                        <option value="5000">5000 kbps</option>
+                    </select>
+                    <label for="resolution">Resolution:</label>
+                    <select id="resolution" name="resolution">
+                        <option value="None">-</option>
+                        <option value="720p">720p</option>
+                        <option value="1080p">1080p</option>
+                        <option value="4k">4K</option>
+                    </select>
+                    <label for="framerate">Framerate:</label>
+                    <select id="framerate" name="framerate">
+                        <option value="None">-</option>
+                        <option value="30">30 fps</option>
+                        <option value="60">60 fps</option>
+                        <option value="120">120 fps</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+        <h2 id="logs">Test</h2>
+        <div id="result"></div>
+    </div>
+    <script src="/static/converter.js"></script>
+</body>
+</html>

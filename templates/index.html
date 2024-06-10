@@ -3,43 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Converter</title>
+    <title>Media Services</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/script.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>File Converter</h1>
-        <form id="upload-form" enctype="multipart/form-data" method="POST" action ="http://localhost:8000/upload/" enctype?"multipart/form-data">
-            <div class="form-group">
-                <label for="file">Choose a file to convert:</label>
-                <input type="file" id="file" name="file" required>
-            </div>
-            <div class="form-group" >
-                <label for="format">Choose format to convert to:</label>
-                <select id="format" name="format" style="display:none;">
-                    <option value="mp4">mp4</option>
-                    <option value="mov">mov</option>
-                    <option value="avi">avi</option>
-                    <option value="mkv">mkv</option>
-                    <option value="flv">flv</option>
-                    <option value="wmv">wmv</option>
-                    <option value="webm">webm</option>
-                    <option value="mp3">mp3</option>
-                    <option value="aac">aac</option>
-                    <option value="wav">wav</option>
-                    <option value="ogg">ogg</option>
-                    <option value="gif">gif</option>
-                </select>
-            </div>
-            <button id="convert-btn" type="submit" style="display:none;">Convert</button>
-            <div id="progress">
-                <div id="bar"></div>
-            </div>
-            <button id="download-btn" style="display:none;">Download Converted File</button>
-        </form>
-        <h2 id="logs">Test</h2>
-        <div id="result"></div>
+        <h1>Choose a Service</h1>
+        <div class="services">
+            <a href="converter.html" class="service">Converter</a>
+            <a href="upscaler.html" class="service">Upscaler</a>
+            <a href="subtitler.html" class="service">Subtitler</a>
+            <a href="colorgrader.html" class="service">ColorGrader</a>
+        </div>
     </div>
-    <script src="/static/script.js"></script>
+    
 </body>
 </html>

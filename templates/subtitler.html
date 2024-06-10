@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Subtitler</title>
+    <link rel="stylesheet" href="/static/subtitler.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Video and Add Subtitles</h1>
+        <form id="subtitleForm" enctype="multipart/form-data" method="POST" action ="http://localhost:8000/give/" enctype?"multipart/form-data">
+            <div class="form-group">
+                <label for="videoUpload">Upload Video:</label>
+                <input type="file" id="file" name="file" required>
+            </div>
+            <div class="form-group">
+                <label for="language">Choose Language:</label>
+                <select id="language" name="language" required>
+                    <option value="English">English</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                    <option value="Chinese">Chinese</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="model">Choose AI Model:</label>
+                <select id="model" name="model" required>
+                    <option value="tiny">Tiny</option>
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="task">Choose Task:</label>
+                <select id="task" name="task" required>
+                    <option value="translate">Translate to English</option>
+                    <option value="transcribe">Transcribe</option>
+                </select>
+            </div>
+            <button id="convert-btn" type="submit" style="display:none;">Convert</button>
+            <button id="download-btn" style="display:none;">Generate Subtitles</button>
+        </form>
+        <h1 id="logs"></h1>
+        <div id="result"></div>
+    </div>
+    <script src="/static/subtitler.js"></script>
+</body>
+</html>
