@@ -21,25 +21,36 @@ h1 {
     margin-bottom: 20px;
 }
 
-.services {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
+.form-group {
+    margin-bottom: 15px;
 }
 
-.service {
+label {
     display: block;
-    width: 150px;
-    margin: 10px;
-    padding: 15px;
+    margin-bottom: 5px;
+}
+
+input[type="file"],
+select,
+input[type="checkbox"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
     background-color: #007BFF;
     color: white;
-    text-align: center;
-    text-decoration: none;
+    border: none;
     border-radius: 5px;
+    cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-.service:hover {
+button:hover {
     background-color: #0056b3;
 }
