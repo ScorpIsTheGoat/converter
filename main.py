@@ -16,24 +16,34 @@ import time
 import ffmpeg 
 
 def convert(input_file, output_file, **args):
-    command = f'ffmpeg -i {input_file} '
-    
-    if 'vc' in args:
+    command = f'ffmpeg -i "{input_file}" '
+    print(args)
+    if 'vc' in args and args['vc'] != "None":
         command += f'-c:v {args["vc"]} '
-    if 'ac' in args:
-        command += f'-c:a {args["ac"]} '
-    if 'vb' in args:
-        command += f'-b:v {args["vb"]} '
-    if 'ab' in args:
-        command += f'-b:a {args["ab"]} '
-    if 'framerate' in args:
-        command += f'-r {args["framerate"]} '
-    if 'resolution' in args:
-        command += f'-s {args["resolution"]} '
 
-    command += f'{output_file}'
+    if 'ac' in args and args['ac'] != "None":
+        command += f'-c:a {args["ac"]} '
+
+    if 'vb' in args and args['vb'] != "None":
+        command += f'-b:v {args["vb"]} '
+
+    if 'ab' in args and args['ab'] != "None":
+        command += f'-b:a {args["ab"]} '
+
+    if 'resolution' in args and args['resolution'] != "None":
+        command += f'-vf scale={args["resolution"]} '
+
+    if 'framerate' in args and args['framerate'] != "None":
+        command += f'-r {args["framerate"]} '
+
+    command += f'"{output_file}"'
 
     return command
+
+def add_subtitles(input_file, output_file, **args):
+    command_create_subtitles = f'whisper {input_file} --language {args['language']} --task {args['task']} --model {args['model']}'
+    command_add_subtitles = f'ffmpeg -i {input_file} vf subtitles={input_file.file_name}.srt {output_file}'
+    return command_create_subtitles, command_add_subtitles
 
 class FileProperties:
     def __init__(self, file_path):
@@ -43,6 +53,16 @@ class FileProperties:
         self.file_access_time = time.ctime(os.path.getatime(file_path))
 class SelectValue(BaseModel):
     filetype: str
+    videocodec: str
+    audiocodec: str
+    videobitrate: str
+    audiobitrate: str
+    resolution: str
+    framerate: str
+    language: str
+    model: str
+    task: str
+
 def file_exists(path: str):
     file = Path(path)
     if file.exists():
@@ -58,7 +78,7 @@ def format_file_size(size_bytes):
         return f"{size_bytes / (1024 ** 2):.2f} MB"
     else:
         return f"{size_bytes / (1024 ** 3):.2f} GB"
-#create instance
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -74,15 +94,48 @@ UPLOAD_DIR = Path() / 'uploads'
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
+
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     context = {"request" : request}
     return templates.TemplateResponse("index.html", context)
 
+@app.get("/converter.html", response_class=HTMLResponse)
+def read_converter(request: Request):
+    context = {"request" : request}
+    return templates.TemplateResponse("converter.html", context)
+
+@app.get("/subtitler.html", response_class=HTMLResponse)
+def read_subtitler(request: Request):
+    context = {"request" : request}
+    return templates.TemplateResponse("subtitler.html", context)
+
 @app.post("/upload")
 async def create_upload_file(file: UploadFile):
     files = os.listdir(UPLOAD_DIR)
+    for file_name in files:
+            file_path = os.path.join(UPLOAD_DIR, file_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    print("Has been deleted")
+    data = await file.read()
+    global save_to
+    save_to = UPLOAD_DIR / file.filename
+    with open(save_to, 'wb') as f:
+        f.write(data)
+        print("finished uploading")
+    while True:
+        if file_exists(save_to) and os.access(save_to, os.R_OK):
+            break
+    global uploaded_file
+    uploaded_file = FileProperties(save_to)
+    print(uploaded_file.file_name, uploaded_file.file_type, uploaded_file.file_size, uploaded_file.file_access_time)
 
+    return {"filename": file.filename}
+@app.post("/subtitle-upload")
+
+async def create_upload(file: UploadFile):
+    files = os.listdir(UPLOAD_DIR)
     for file_name in files:
             file_path = os.path.join(UPLOAD_DIR, file_name)
             if os.path.isfile(file_path):
@@ -106,11 +159,19 @@ async def create_upload_file(file: UploadFile):
 @app.post("/convert")
 async def convert_file(select_value: SelectValue):
     filetype = select_value.filetype
+    videocodec = select_value.videocodec
+    audiocodec = select_value.audiocodec
+    videobitrate = select_value.videobitrate
+    audiobitrate = select_value.audiobitrate
+    resolution = select_value.resolution
+    framerate = select_value.framerate
+    print(save_to)
     original_file_path = save_to
+    print(uploaded_file.file_name)
     converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + filetype)
-    command = convert(original_file_path, converted_file_name, vb="1000M") #ogg should be converted with high vb
+    command = convert(original_file_path, converted_file_name, vc = videocodec, ac = audiocodec, vb = videobitrate, ab = audiobitrate, resolution = resolution, framerate = framerate) #ogg should be converted with high vb
     print(command)
-    result = subprocess.run(command, capture_output=True, text=True)
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding = "utf-8")
     print(result.stdout)
     print(result.stderr)    
     try:       
@@ -118,6 +179,27 @@ async def convert_file(select_value: SelectValue):
         return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/give")
+async def subtitle(select_value: SelectValue):
+    print("into subtitle converter")
+    language = select_value.language
+    task = select_value.task
+    model = select_value.model
+    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + uploaded_file.filetype)
+    command_1, command_2 = add_subtitles(uploaded_file.file_name + uploaded_file.filetype, converted_file_name, language = language, task = task, model = model)
+    result = subprocess.run(command_1, capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)    
+    result = subprocess.run(command_2, capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)    
+    try:       
+        
+        return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     uvicorn.run(app, port=8000)
