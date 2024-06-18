@@ -1,20 +1,24 @@
-from fastapi import FastAPI, File, Form, UploadFile, Request, HTTPException
-import uvicorn
+import os
+
+# import whisper
+import shutil
+import subprocess
+import time
 from enum import Enum
-from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
+from pathlib import Path
+
+import cv2
+import ffmpeg
+import uvicorn
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.encoders import jsonable_encoder
-from pathlib import Path
 from pydantic import BaseModel
-import os
-import subprocess
-#import whisper
-import shutil
-import time
-import ffmpeg 
 
+"""
 def convert(input_file, output_file, **args):
     command = f'ffmpeg -i "{input_file}" '
     print(args)
@@ -41,8 +45,12 @@ def convert(input_file, output_file, **args):
     return command
 
 def add_subtitles(input_file, output_file, **args):
-    command_create_subtitles = f'whisper {input_file} --language {args['language']} --task {args['task']} --model {args['model']}'
-    command_add_subtitles = f'ffmpeg -i {input_file} vf subtitles={input_file.file_name}.srt {output_file}'
+    input = FileProperties(input_file)
+    subtitle_path = os.path.join(UPLOAD_DIR, input.file_name + ".srt")
+    command_create_subtitles = f'whisper "{input_file}" --language {args["language"]} --task {args["task"]} --model {args["model"]} --output_dir uploads --output_format srt'
+    command_add_subtitles = f'ffmpeg -i "{input_file}" -vf subtitles="{subtitle_path}" "{output_file}"'
+    command_create_subtitles = command_create_subtitles.replace('\\', "/")
+    command_add_subtitles = command_add_subtitles.replace('\\', "/")
     return command_create_subtitles, command_add_subtitles
 
 class FileProperties:
@@ -59,9 +67,11 @@ class SelectValue(BaseModel):
     audiobitrate: str
     resolution: str
     framerate: str
+class SelectValuesSubtitler(BaseModel):
     language: str
     model: str
     task: str
+
 
 def file_exists(path: str):
     file = Path(path)
@@ -133,7 +143,6 @@ async def create_upload_file(file: UploadFile):
 
     return {"filename": file.filename}
 @app.post("/subtitle-upload")
-
 async def create_upload(file: UploadFile):
     files = os.listdir(UPLOAD_DIR)
     for file_name in files:
@@ -181,25 +190,27 @@ async def convert_file(select_value: SelectValue):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/give")
-async def subtitle(select_value: SelectValue):
-    print("into subtitle converter")
+async def subtitle(select_value: SelectValuesSubtitler):
     language = select_value.language
     task = select_value.task
     model = select_value.model
-    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + uploaded_file.filetype)
-    command_1, command_2 = add_subtitles(uploaded_file.file_name + uploaded_file.filetype, converted_file_name, language = language, task = task, model = model)
+    print(uploaded_file)
+    inputed_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + uploaded_file.file_type)
+    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted" + uploaded_file.file_type)
+    command_1, command_2 = add_subtitles(inputed_file_name, converted_file_name, language = language, task = task, model = model)
+    print(command_1)
+    print(command_2)
     result = subprocess.run(command_1, capture_output=True, text=True)
     print(result.stdout)
     print(result.stderr)    
-    result = subprocess.run(command_2, capture_output=True, text=True)
+    result = subprocess.run(command_2, capture_output=True, text=True, encoding="utf-8")
     print(result.stdout)
     print(result.stderr)    
     try:       
-        
-        return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
+        return FileResponse(path=converted_file_name, filename=f"converted_file.mp4")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+"""
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8000)
+    uvicorn.run("sql_app.app:app", port=8000)
