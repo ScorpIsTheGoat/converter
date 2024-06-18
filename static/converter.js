@@ -2,6 +2,7 @@ const LOGS = document.getElementById('logs');
 
 document.getElementById('file').addEventListener('change', async function(event) {
     event.preventDefault();
+    document.getElementById('convert-btn').style.display = 'block'; 
     LOGS.innerHTML ='';
     const fileInput = document.getElementById('file');
     LOGS.innerHTML += 'File Input:' + fileInput.value + '\n';
@@ -32,6 +33,9 @@ document.getElementById('file').addEventListener('change', async function(event)
 
 document.getElementById('convert-btn').addEventListener('click', async function (event) {
     event.preventDefault();
+    document.getElementById('subtitleForm').style.display = 'none'
+    document.getElementById('convert-btn').style.display = 'none'; 
+    document.getElementsByClassName('dropdown')[0].style.display = 'block';
     console.log("Convert Button has been clicked")
     let filetypeToConvertTo = document.getElementById('format').value;
     let videocodecToConvertTo = document.getElementById('videocodec').value;
@@ -78,9 +82,9 @@ document.getElementById('convert-btn').addEventListener('click', async function 
             a.remove(); // Remove the link from the DOM after clicking
         };
 
-        logs.innerHTML = "Conversion successful! Click the button to download.";
+        LOGS.innerHTML = "Conversion successful! Click the button to download.";
     } catch (error) {
-        logs.innerHTML = "Conversion failed: " + error.message;
+        LOGS.innerHTML = "Conversion failed: " + error.message;
     }
 });
 function toggleDropdown() {

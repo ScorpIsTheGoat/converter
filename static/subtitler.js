@@ -30,6 +30,7 @@ document.getElementById('file').addEventListener('change', async function(event)
 
 document.getElementById('convert-btn').addEventListener('click', async function (event) {
     event.preventDefault();
+    document.getElementById('convert-btn').style.display = 'none'; 
     console.log("Convert Button has been clicked")
     let language = document.getElementById('language').value;
     let model = document.getElementById('model').value;
@@ -49,7 +50,7 @@ document.getElementById('convert-btn').addEventListener('click', async function 
                 task: task
             })
         });
-
+        console.log(response)
         if (!response.ok) {
             throw new Error('Network response was not ok ' + response.statusText);
         }
@@ -58,7 +59,7 @@ document.getElementById('convert-btn').addEventListener('click', async function 
         let url = window.URL.createObjectURL(blob);
         let a = document.createElement('a');
         a.href = url;
-        a.download = `converted_file.${filetypeToConvertTo}`;
+        a.download = `converted_file.mp4`;
         a.id = 'download-link';
         
         document.body.appendChild(a); 
