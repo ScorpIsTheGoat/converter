@@ -1,34 +1,63 @@
-const LOGS = document.getElementById('logs');
-
+//upload
 document.getElementById('file').addEventListener('change', async function(event) {
     event.preventDefault();
     document.getElementById('convert-btn').style.display = 'block'; 
-    LOGS.innerHTML ='';
     const fileInput = document.getElementById('file');
-    LOGS.innerHTML += 'File Input:' + fileInput.value + '\n';
-
-    const file = fileInput.files[0];
-    LOGS.innerHTML += 'Selected File:' + file.name + '\n'; 
-    
     const formData = new FormData();
-    formData.append('file', file);
-    
-    fetch('/upload', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.ok) {
-            LOGS.innerHTML= "uploaded successfully"
-            console.log('Worked');
-            document.getElementById('format').style.display = 'block';
-            document.getElementById('convert-btn').style.display = 'block'; 
-            document.getElementsByClassName('dropdown')[0].style.display = 'block';
+    const files = fileInput.files;
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]); // Append each file, debugger says formData is empty, but I still receive somthing on the backend
+    }
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = ''; 
+    //displaying uploaded files
+    Array.from(files).forEach(file => {
+        const fileItem = document.createElement('div');
+        fileItem.classList.add('file-item');
+        const fileTitle = document.createElement('h3');
+        fileTitle.textContent = file.name;
+        const fileDetails = document.createElement('p');
+        fileDetails.classList.add('file-details');
+        fileDetails.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB | Type: ${file.type}`;
+        const formatSelect = document.createElement('select');
+        formatSelect.name = `format-${file.name}`;
+        formatSelect.innerHTML = `
+            <option value="mp4">mp4</option>
+            <option value="mov">mov</option>
+            <option value="avi">avi</option>
+            <option value="mkv">mkv</option>
+            <option value="flv">flv</option>
+            <option value="wmv">wmv</option>
+            <option value="webm">webm</option>
+            <option value="mp3">mp3</option>
+            <option value="aac">aac</option>
+            <option value="wav">wav</option>
+            <option value="ogg">ogg</option>
+            <option value="gif">gif</option>
+        `;
+        fileItem.appendChild(fileTitle);
+        fileItem.appendChild(fileDetails);
+        fileItem.appendChild(formatSelect);
+        
+        // Append file item to the grid
+        fileList.appendChild(fileItem);
+    });
+    //should be able to send multiple files at once to backend but doesn't work (422 unprocessable entity)
+    try {
+        const response = await fetch('/converter-upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        return response.json();
-    })
-    .then(data => console.log(data))
-    .catch(error => console.error('Error:', error));
+
+        const data = await response.json();
+        console.log('Upload successful:', data);
+    } catch (error) {
+        console.error('Error during file upload:', error);
+    }
 });
 
 document.getElementById('convert-btn').addEventListener('click', async function (event) {
@@ -45,8 +74,6 @@ document.getElementById('convert-btn').addEventListener('click', async function 
     let resoultionToConvertTo = document.getElementById('resolution').value;
     let framerateToConvertTo = document.getElementById('framerate').value;
     console.log(filetypeToConvertTo);
-    LOGS.innerHTML = "Converting to " + filetypeToConvertTo;
-
     try {
         let response = await fetch('/convert', {
             method: 'POST',
@@ -82,9 +109,8 @@ document.getElementById('convert-btn').addEventListener('click', async function 
             a.remove(); // Remove the link from the DOM after clicking
         };
 
-        LOGS.innerHTML = "Conversion successful! Click the button to download.";
     } catch (error) {
-        LOGS.innerHTML = "Conversion failed: " + error.message;
+        console.log("Error occured")
     }
 });
 function toggleDropdown() {
