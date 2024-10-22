@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="/static/subtitler.css">
 </head>
 <body>
+    <header>
+        <div class="logo">
+            <img src="../images/convert-3209.svg" alt="Logo" />
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <a href="/">Home</a>
+                <a href="converter">Converter</a>
+                <a href="subtitler">Subtitler</a>
+                <a href="colorgrader">ColorGrader</a>
+                <a href="upscaler">Upscaler</a>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="login.html" class="button">Login</a>
+            <a href="register.html" class="button">Register</a>        </div>
+    </header>
     <div class="container">
         <h1>Upload Video and Add Subtitles</h1>
         <form id="subtitleForm" enctype="multipart/form-data" method="POST" action ="http://localhost:8000/give/" enctype?"multipart/form-data">

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Color Grader</title>
+    <link rel="stylesheet" href="/static/colorgrader.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="../images/convert-3209.svg" alt="Logo" />
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <a href="/">Home</a>
+                <a href="converter">Converter</a>
+                <a href="subtitler">Subtitler</a>
+                <a href="colorgrader">ColorGrader</a>
+                <a href="upscaler">Upscaler</a>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="login.html" class="button">Login</a>
+            <a href="register.html" class="button">Register</a>        </div>
+    </header>
+    <div class="container">
+        <h1>Video Color Grader</h1>
+        
+        <!-- Video Upload -->
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="videoInput" name="video" accept="video/*">
+        </form>
+
+        <div class="video-wrapper">
+            <video id="videoPlayer" controls>
+                <source id="videoSource" src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+
+        <div class="controls" style = "display:none">
+            <button id="none" class="selected-button">No Filter</button>
+            <button id="cinematic">Cinematic</button>
+            <button id="happy">Happy</button>
+            <button id="colorful">Colorful</button>
+            <button id="bnw">Black & White</button>
+        </div>
+        <div class="video-controls" style="display:none">
+            <button id="colorgrade-button">Colorgrade Video</button>
+        </div>    
+    </div>
+    <script src="/static/colorgrader.js"></script>
+</body>
+</html>

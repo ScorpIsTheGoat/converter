@@ -4,19 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Services</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <script src="/static/script.js"></script>
+    <link rel="stylesheet" href="../static/styles.css">
+    <script src="../static/script.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Choose a Service</h1>
-        <div class="services">
-            <a href="converter.html" class="service">Converter</a>
-            <a href="upscaler.html" class="service">Upscaler</a>
-            <a href="subtitler.html" class="service">Subtitler</a>
-            <a href="colorgrader.html" class="service">ColorGrader</a>
+    <header>
+        <div class="logo">
+            <img src="../images/convert-3209.svg" alt="Logo" />
         </div>
-    </div>
-    
+        <nav>
+            <ul class="nav-links">
+                <a href="/">Home</a>
+                <a href="converter">Converter</a>
+                <a href="subtitler">Subtitler</a>
+                <a href="colorgrader">ColorGrader</a>
+                <a href="upscaler">Upscaler</a>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="login.html" class="button">Login</a>
+            <a href="register.html" class="button">Register</a>        </div>
+    </header>
+    <div class="grid-container">
+        <div class="converter-paragraph">
+            Tired of the wrong filetype?
+        </div>
+        <div class="subtitler-paragraph">
+            Want to subtitle your videos?
+        </div>
+        <div class="colorgrader-paragraph">
+            Add some cinematic filter to your video and make it seem like a movie
+        </div>
+        <div class="upscaler-paragraph">
+            The resolution of your image is to bad? Use ur upscaler
+        </div>
+    </div>    
 </body>
 </html>
