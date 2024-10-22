@@ -2,3 +2,7 @@ fastapi
 uvicorn[standard]
 python-multipart
 pathlib
+bcrypt
+hashlib
+pydantic
+subprocess
