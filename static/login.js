@@ -17,6 +17,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 password: password,
             })
         });
+        logCookie()
         if (response.redirected) {
             // If the response contains a redirect, manually follow it
             window.location.href = response.url;
@@ -28,3 +29,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         console.log(error);
     }
 });
+
+function logCookie() {
+    const cookies = document.cookie;
+    console.log("All cookies:", cookies);
+}

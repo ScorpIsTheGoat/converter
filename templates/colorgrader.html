@@ -9,7 +9,7 @@
 <body>
     <header>
         <div class="logo">
-            <img src="../images/convert-3209.svg" alt="Logo" />
+            <img src="static/images/convert-3209.svg" alt="Logo" />
         </div>
         <nav>
             <ul class="nav-links">
@@ -29,7 +29,7 @@
         
         <!-- Video Upload -->
         <form id="uploadForm" enctype="multipart/form-data">
-            <input type="file" id="videoInput" name="video" accept="video/*">
+            <input type="file" id="videoInput" name="video" accept="video/*,image/*">
         </form>
 
         <div class="video-wrapper">
@@ -41,10 +41,15 @@
 
         <div class="controls" style = "display:none">
             <button id="none" class="selected-button">No Filter</button>
-            <button id="cinematic">Cinematic</button>
-            <button id="happy">Happy</button>
-            <button id="colorful">Colorful</button>
+            <button id="teal_orange">Teal Orange Look</button>
+            <button id="monochrome_blend">Monochrome_blend</button>
+            <button id="bypass_bleach">Bypass/Bleach</button>
             <button id="bnw">Black & White</button>
+            <button id="film_stock">Film Stock Emulation</button>
+            <button id="hdr">Film Stock Emulation</button>
+            <button id="day_scene">Film Stock Emulation</button>
+            <button id="night_scene">Film Stock Emulation</button>
+            <button id="dfn">Day for Night</button>
         </div>
         <div class="video-controls" style="display:none">
             <button id="colorgrade-button">Colorgrade Video</button>

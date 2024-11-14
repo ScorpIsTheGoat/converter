@@ -60,10 +60,10 @@ videoInput.addEventListener('change', async function(event) {
     extractRandomFrame(URL.createObjectURL(selectedVideoFile));
     const formData = new FormData(); 
     formData.append('video', selectedVideoFile);
-    fetch('/colorgrader/upload', {
+    const uploadResponse = fetch('/colorgrader/upload', {
         method: 'POST',
         body: formData
-    })
+    });
 });
 //adds selected class to button
 controlButtons.forEach(button => {
@@ -74,16 +74,32 @@ controlButtons.forEach(button => {
     });
 });
 
-colorgradeButton.addEventListener('click', ()=> {
-    fetch('colorgrader/confirmation', { method: 'POST' })
-    .then(response => response.json())
-      .then(data => {
-        // Handle the received data
-        console.log(data);
-        // Update UI or perform actions based on the response
-      })
-      .catch(error => {
+colorgradeButton.addEventListener('click', async () => {
+    try {
+        const response = await fetch('/colorgrader/confirmation', {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url; 
+        a.download = 'processed_image.jpg'; 
+        document.body.appendChild(a); 
+        a.click();
+        a.remove(); 
+        setTimeout(() => {
+            window.URL.revokeObjectURL(url);
+        }, 100);
+        
+    } catch (error) {
         console.error('Error:', error);
-      });
+    }
 });
         

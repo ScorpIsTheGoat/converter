@@ -17,16 +17,9 @@ sr.setModel('edsr', 2)
 pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesseract.exe"
 
 
-def hash_password(password: str) -> str:
-    hashed_password = bcrypt.hashpw(password.encode('utf-8'), SALT)
-    return hashed_password.decode('utf-8')
 
-def is_valid_email(email):
-    regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
-    if re.match(regex, email):
-        return True
-    else:
-        return False
+
+
 
 def validate_password(password: str) -> bool:
     has_uppercase = re.search(r"[A-Z]", password)
