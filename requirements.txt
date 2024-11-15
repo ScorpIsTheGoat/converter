@@ -3,6 +3,9 @@ uvicorn[standard]
 python-multipart
 pathlib
 bcrypt
-hashlib
 pydantic
-subprocess
+opencv-python
+opencv-contrib-python
+pytesseract
+pdf2image
+jinja2
