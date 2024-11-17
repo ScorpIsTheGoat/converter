@@ -3,35 +3,7 @@ const videoInput = document.getElementById('videoInput');
 const controls = document.getElementsByClassName('controls')[0];
 const controlButtons = document.querySelectorAll('.controls button'); 
 const colorgradeButton = document.getElementById('colorgrade-button') 
-function extractRandomFrame(videoUrl) {
-    return;
-    const video = document.createElement('video');
-    video.src = videoUrl;
 
-    // Wait until the video metadata is loaded
-    video.addEventListener('loadedmetadata', function() {
-        // Generate a random time within the video's duration
-        const randomTime = Math.random() * video.duration;
-
-        // Set the current time to the random time
-        video.currentTime = randomTime;
-    });
-
-    // Capture the frame when the video is ready
-    video.addEventListener('seeked', function() {
-        // Create a canvas to draw the frame
-        const canvas = document.getElementById('frameCanvas');
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        // Draw the current frame on the canvas
-        context.drawImage(video, 0, 0);
-
-        // Show the canvas
-        canvas.style.display = 'block';
-    });
-}
 async function sendSelectedFilter(filterId) {
     try {
         const response = await fetch('/colorgrader/type', {
@@ -65,7 +37,7 @@ videoInput.addEventListener('change', async function(event) {
         body: formData
     });
 });
-//adds selected class to button
+
 controlButtons.forEach(button => {
     button.addEventListener('click', () => {
         controlButtons.forEach(btn => btn.classList.remove('selected-button'));

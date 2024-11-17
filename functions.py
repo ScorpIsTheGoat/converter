@@ -18,7 +18,11 @@ pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesserac
 
 
 
-
+def create_unique_file_hash(username: str, filesize: str, filetype: str) -> str:
+    hash_input = f"{username}{filesize}{filetype}"
+    file_hash = hashlib.sha256()
+    file_hash.update(hash_input.encode('utf-8'))
+    return file_hash.hexdigest()
 
 
 def validate_password(password: str) -> bool:

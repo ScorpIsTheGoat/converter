@@ -1,12 +1,15 @@
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
-    event.preventDefault(); 
+    event.preventDefault(); // Prevent default form submission
 
+    // Retrieve username and password from input fields
     var username = document.getElementById('username').value;
     var password = document.getElementById('password').value;
 
-    console.log(username)
-    console.log(password)
+    console.log('Username:', username);
+    console.log('Password:', password);
+
     try {
+        // Make POST request to /login-post
         let response = await fetch('/login-post', {
             method: 'POST',
             headers: {
@@ -15,22 +18,26 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             body: JSON.stringify({ 
                 username: username,
                 password: password,
-            })
+            }),
+            credentials: 'include'  // Ensure cookies are included in the request
         });
-        logCookie()
-        if (response.redirected) {
-            // If the response contains a redirect, manually follow it
-            window.location.href = response.url;
-        }
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Login successful:', data);
+
+            // Check for the 'session_id' cookie and redirect to "/" if set
+            if (document.cookie.includes('session_id')) {
+                console.log('Session ID cookie found. Redirecting to "/"...');
+                window.location.href = '/';
+            } else {
+                console.error('Session ID cookie not found. Login failed.');
+            }
+        } else {
+            const errorData = await response.json();
+            console.error('Login failed:', errorData.detail);
         }
     } catch (error) {
-        console.log(error);
+        console.error('Error during login:', error);
     }
 });
-
-function logCookie() {
-    const cookies = document.cookie;
-    console.log("All cookies:", cookies);
-}

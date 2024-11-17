@@ -17,8 +17,18 @@ cursor.execute("""
         Passwordhash TEXT NOT NULL
     );           
 """)
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS FileHashMapping (
+        Hash TEXT PRIMARY KEY,    
+        Path TEXT NOT NULL,       
+        Username TEXT NOT NULL,   
+        Private INTEGER DEFAULT 0
+    );
+""")
+conn.commit()
 conn.commit()
 conn.close
+
 def validate_password(password):
     if len(password) < 8:
         return False, "Password must be at least 8 characters long."
@@ -31,15 +41,18 @@ def validate_password(password):
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
         return False, "Password must contain at least one special character."
     return True, "Password is valid."
+
 def is_valid_email(email):
     regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
     if re.match(regex, email):
         return True
     else:
         return False
+
 def hash_password(password: str) -> str:
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), SALT)
     return hashed_password.decode('utf-8')
+
 def get_column_names(table_name):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -82,11 +95,13 @@ def add_user(username, email, passwordhash):
         for file in files:
             if os.path.isfile(file):
                 os.remove(file)
+    os.mkdir(f"{directory}/uploaded")
+    os.mkdir(f"{directory}/converted")
     conn.commit()
     conn.close()
 
 def get_user_by_session(session_id: str):
-    conn = sqlite3.connect("your_database.db")
+    conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM Users WHERE SessionId=?", (session_id,))
     user = cursor.fetchone()
@@ -137,28 +152,13 @@ def change_username(user_id, new_username):
     conn.close
     print(f"Sucessfully updated Username to{new_username}")
 
-
-def get_user_by_username(username):
+def get_user_by_username(username: str):
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
-
-    # Query to select user attributes based on username
-    cursor.execute("""
-        SELECT SessionId, Username, Email, Passwordhash FROM Users WHERE Username = ?
-    """, (username,))
-
-    # Fetch and display user information
+    cursor.execute("SELECT * FROM Users WHERE username=?", (username,))
     user = cursor.fetchone()
     conn.close()
-    
-    if user:
-        print(f"User attributes for '{username}':")
-        print(f"SessionId: {user[0]}")
-        print(f"Username: {user[1]}")
-        print(f"Email: {user[2]}")
-        print(f"Passwordhash: {user[3]}")
-    else:
-        print(f"No user found with username '{username}'.")
+    return user
 
 def add_session_to_user(username, session_id):
     conn = sqlite3.connect('users.db')
@@ -183,4 +183,96 @@ def add_session_to_user(username, session_id):
     print(get_user_by_username("Blackknight"))
     return
 
+def remove_session_from_db(session_id: str):
+    try:
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("UPDATE Users SET SessionId = NULL WHERE SessionId = ?", (session_id,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error removing session from db: {e}")
+        raise HTTPException(status_code=500, detail="Failed to remove session")
 
+def add_file(hash: str, path: str, username: str, private: bool):
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    try:
+        private_value = 1 if private else 0
+        cursor.execute("""
+            INSERT INTO FileHashMapping (Hash, Path, Username, Private)
+            VALUES (?, ?, ?, ?)
+        """, (hash, path, username, private_value))
+        conn.commit()
+        print(f"File with hash '{hash}' added successfully.")
+    except sqlite3.IntegrityError as e:
+        print(f"Error adding file: {e}")
+    finally:
+        conn.close()
+
+def is_hash_in_table(hash: str) -> bool:
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM FileHashMapping WHERE Hash = ? LIMIT 1;", (hash,))
+        result = cursor.fetchone()
+        return result is not None
+    finally:
+        conn.close()
+
+def get_file_path_by_hash(hash: str):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT Path FROM FileHashMapping WHERE Hash = ?", (hash,))
+        result = cursor.fetchone()
+        if result:
+            return result[0] 
+        else:
+            return None  
+    finally:
+        conn.close()
+
+def all_file_hashes() -> list:
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT Hash FROM FileHashMapping")
+        hashes = cursor.fetchall() 
+        return [hash[0] for hash in hashes]  
+    finally:
+        conn.close()
+
+def delete_all_file_hash_mappings():
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM FileHashMapping") 
+        conn.commit()
+        print("Alle Einträge in FileHashMapping wurden gelöscht.")
+    finally:
+        conn.close()
+
+def file_is_private(filehash: str) -> bool:
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT Private FROM FileHashMapping WHERE hash = ?", (filehash,))
+        result = cursor.fetchone()
+        if result:
+            return bool(result[0])  #1 meaning true, 0 meaning false
+        return False  
+    finally:
+        conn.close()
+
+def get_username_by_filehash(filehash: str) -> str:
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT Username FROM FileHashMapping WHERE hash = ?", (filehash,))
+        result = cursor.fetchone()
+        if result:
+            return result[0]  
+        return None
+    finally:
+        conn.close()

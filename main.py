@@ -3,6 +3,7 @@ import re
 import cv2
 import uvicorn
 import secrets
+import mimetypes
 from typing import List
 from pathlib import Path
 import pytesseract
@@ -16,12 +17,12 @@ import os
 import json
 from fastapi import FastAPI, File, APIRouter, Depends, HTTPException, Request, UploadFile, status
 from classes import FileProperties, SelectValue, SelectValuesSubtitler, UserLogin, UserRegister
-from database import add_user, verify_user, delete_user, change_email, change_passwordhash, change_username, validate_password, is_valid_email, hash_password, get_user_by_session, add_session_to_user
+from database import add_user, verify_user, delete_user, change_email, change_passwordhash, change_username, validate_password, is_valid_email, hash_password, get_user_by_session, add_session_to_user, get_user_by_username, remove_session_from_db, add_file, is_hash_in_table, get_file_path_by_hash, file_is_private, get_username_by_filehash
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from filter_functions import add_subtitles
-from functions import file_exists, format_file_size
+from functions import file_exists, format_file_size, create_unique_file_hash
 from classes import FileProperties
 from colorgrading import color_grade_image
 #model = whisper.load_model("medium")
@@ -36,8 +37,8 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-uploaded_files = {}
-#app.include_router(app_routes)
+
+
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request, session_id: str = Cookie(None)):
     context = {"request": request}
@@ -56,13 +57,24 @@ def read_root(request: Request, session_id: str = Cookie(None)):
 
 @app.get("/login", response_class=HTMLResponse)
 def read_login(request: Request):
+    if request.cookies.get("session_id"):
+        return RedirectResponse(url="/")
     context = {"request" : request}
     return templates.TemplateResponse("login.html", context)
 
 @app.get("/register", response_class=HTMLResponse)
 def read_register(request: Request):
+    if request.cookies.get("session_id"):
+        return RedirectResponse(url="/")
     context = {"request" : request}
     return templates.TemplateResponse("register.html", context)
+
+@app.get("/upload", response_class=HTMLResponse)
+def read_upload(request: Request):
+    if not request.cookies.get("session_id"):
+        return RedirectResponse(url="/")
+    context = {"request" : request}
+    return templates.TemplateResponse("upload.html", context)
 
 @app.get("/converter", response_class=HTMLResponse)
 def read_converter(request: Request):
@@ -79,20 +91,33 @@ def read_colorgrade(request: Request):
     context = {"request" : request}
     return templates.TemplateResponse("colorgrader.html", context)
 
+@app.get("/my-files", response_class=HTMLResponse)
+def read_my_files(request: Request):
+    context = {"request" : request}
+    return templates.TemplateResponse("files.html", context)
+
+@app.get("/file/{filehash}", response_class=HTMLResponse)
+def read_file(request: Request, filehash: str):
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        username = get_user_by_session(session_id)[1]
+    if file_is_private(filehash):
+        if not session_id:
+            raise HTTPException(status_code=400, detail="No access to this file")
+        if not username == get_username_by_filehash(filehash):
+            raise HTTPException(status_code=400, detail="No access to this file")
+    context = {"request" : request}
+    return templates.TemplateResponse("specific_file.html", context)
+
 @app.post("/login-post")
 async def login_user(select_value: UserLogin, response: Response):
-    if not verify_user(select_value.username, hash_password(select_value.password)):#tries to verify user in database, still lacking jwt-token or cookies
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
     session_id = secrets.token_hex(16) 
+    if not verify_user(select_value.username, hash_password(select_value.password)):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
     add_session_to_user(select_value.username, session_id)
     response.set_cookie(key="session_id", value=session_id)
-    return RedirectResponse(url="/", status_code=303)
-@app.post("/cookie/")
-def create_cookie():
-    content = {"message": "Come to the dark side, we have cookies"}
-    response = JSONResponse(content=content)
-    response.set_cookie(key="fakesession", value="fake-cookie-session-value")
-    return response
+    return {"message": "Session created", "session_id": session_id}
+
 @app.post("/register-post")
 async def register_user(select_value: UserRegister):
     if not len(select_value.username) >= 5:
@@ -113,49 +138,28 @@ async def register_user(select_value: UserRegister):
         return {"msg" : "User already registered"}
     return RedirectResponse(url="/", status_code=303)
 
-@app.post("/converter-upload")
-async def create_upload_file(files: UploadFile): #Can't upload multiple files, very weird with fastapi
-    files = os.listdir(UPLOAD_DIR)
-    for file_name in files:
-            file_path = os.path.join(UPLOAD_DIR, file_name)
-            if os.path.isfile(file_path):
-                os.remove(file_path) #just makes sure that uploads directory is empty
-    print("Has been deleted")
+@app.post("/upload-post")
+async def upload_file(request: Request, file: UploadFile):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        print("not logged in")
+        return RedirectResponse("/", status_code=303)
+    user = get_user_by_session(session_id)
+    username = user[1]
+    user_dir = UPLOAD_DIR / username
+    file_hash = create_unique_file_hash(username, file.filename, file.size)
 
-    for file in files:
-        data = await file.read()
-        file_path = UPLOAD_DIR / file.filename
-        with open(file_path, 'wb') as f:
-            f.write(data)
-            print("Finished uploading:", file.filename)
-        file_hash = generate_session_id(file.filename)#generate random hash to access if has already been uploaded to save time and resources
-        uploaded_files[file_hash] = str(file_path)
-        print(uploaded_file.file_name, uploaded_file.file_type, uploaded_file.file_size, uploaded_file.file_access_time)
-    with open('uploaded_files.json', 'w') as json_file:
-        json.dump(uploaded_files, json_file, indent=4)
-    return {"access-token": file.filename}
-
-@app.post("/subtitle-upload")
-async def create_upload(file: UploadFile):
-    files = os.listdir(UPLOAD_DIR)
-    for file_name in files:
-            file_path = os.path.join(UPLOAD_DIR, file_name)
-            if os.path.isfile(file_path): #removing existing file
-                os.remove(file_path)
-    print("Has been deleted")
+    if is_hash_in_table(file_hash):
+        return {"access-token": file_hash}
+    file_path = user_dir / "uploaded" / file.filename
     data = await file.read()
-    global save_to
-    save_to = UPLOAD_DIR / file.filename
-    with open(save_to, 'wb') as f: #saving uploaded file into folder
+    if not os.path.exists(user_dir):
+        os.makedirs(user_dir)
+    with open(file_path, 'wb') as f:
         f.write(data)
-        print("finished uploading")
-    while True:
-        if file_exists(save_to) and os.access(save_to, os.R_OK): #check if file exists and is readable
-            break
-    global uploaded_file
-    uploaded_file = FileProperties(save_to)
-    print(uploaded_file.file_name, uploaded_file.file_type, uploaded_file.file_size, uploaded_file.file_access_time)
-    return {"filename": file.filename}
+        print("Finished uploading:", file.filename)
+        add_file(file_hash, os.path.normpath(file_path), username, True)
+    return {"access-token": file_hash}
 
 @app.post("/convert")
 async def convert_file(select_value: SelectValue):
@@ -194,15 +198,6 @@ async def subtitle(select_value: SelectValuesSubtitler):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/colorgrader/upload") 
-async def upload_video(video: UploadFile = File(...)):
-    video_path = f"uploads/{video.filename}"
-    data = await video.read()
-    with open(video_path,'wb') as f:
-        f.write(data)
-    global uploaded_file
-    uploaded_file = FileProperties(video_path)
-    return {"msg": "Uploaded video"} 
 
 @app.post("/colorgrader/type") #not working yet
 async def upload_type(data : dict):
@@ -220,16 +215,63 @@ async def return_colorgraded_media():
     cv2.imwrite(output_path, color_graded_image)
     return FileResponse(output_path, media_type='image/jpeg', filename=f"processed_{uploaded_file.file_name}") 
 
-@app.get("/create-session/")
-async def create_session(response: Response):
-    session_id = secrets.token_hex(16)
-    response.set_cookie(key="session_id", value=session_id)
-    return {"message": "Session created", "session_id": session_id}
 
+@app.get("/get-username-by-session")
+async def get_username_by_session(session_id: str = Cookie(None)):
+    if session_id:
+        user = get_user_by_session(session_id)
+        if user:
+            return JSONResponse(content={"username": user[1]})
+        else:
+            raise HTTPException(status_code=404, detail="User not found")
+    else:
+        raise HTTPException(status_code=400, detail="No session ID found")
 
+@app.get("/profile/{username}")
+async def read_profile(request: Request, username: str):
+    user = get_user_by_username(username)
+    session_id = request.cookies.get("session_id")
+    if session_id is None or user is None or username != get_user_by_session(session_id)[1]:
+        raise HTTPException(status_code=404, detail="User not found")
 
+    context = {"request": request, "username": user[1], "email": user[2]} 
+    return templates.TemplateResponse("user.html", context)
 
+@app.post("/logout")
+async def logout(request: Request, response: Response):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    remove_session_from_db(session_id)
+    response.delete_cookie("session_id")
+    return {"message": "Logged out successfully"}
 
+@app.get("/files", response_class=HTMLResponse)
+async def list_user_files(request: Request):
+    user = get_user_by_session(request.cookies.get("session_id"))
+    username = user[1]
+    user_dir = UPLOAD_DIR / username
+    user_upload_dir = user_dir / "uploaded"
+    if not user_upload_dir.exists():
+        return f"<h1>No files found for user: {username}</h1>"
+
+    files = [str(file.name) for file in user_upload_dir.iterdir() if file.is_file()]
+    return JSONResponse(content={"files": files})
+
+@app.get("/file/content/{filehash}")
+async def serve_file_page(filehash: str):
+    file_path = get_file_path_by_hash(filehash)
+    if file_path is None:
+        raise HTTPException(status_code=404, detail="File not found")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    mime_type, _ = mimetypes.guess_type(file_path)
+    if mime_type is None:
+        raise HTTPException(status_code=415, detail="Unsupported file type")
+    try:
+        return FileResponse(file_path, media_type="video")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="HTML page not found")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)

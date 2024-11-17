@@ -6,11 +6,10 @@ document.getElementById('file').addEventListener('change', async function(event)
     const formData = new FormData();
     const files = fileInput.files;
     for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]); // Append each file, debugger says formData is empty, but I still receive somthing on the backend
+        formData.append('files', files[i]); 
     }
     const fileList = document.getElementById('fileList');
     fileList.innerHTML = ''; 
-    //displaying uploaded files
     Array.from(files).forEach(file => {
         const fileItem = document.createElement('div');
         fileItem.classList.add('file-item');
@@ -42,7 +41,6 @@ document.getElementById('file').addEventListener('change', async function(event)
         // Append file item to the grid
         fileList.appendChild(fileItem);
     });
-    //should be able to send multiple files at once to backend but doesn't work (422 unprocessable entity)
     try {
         const response = await fetch('/converter-upload', {
             method: 'POST',
@@ -102,11 +100,11 @@ document.getElementById('convert-btn').addEventListener('click', async function 
         a.download = `converted_file.${filetypeToConvertTo}`;
         a.id = 'download-link';
         
-        document.body.appendChild(a); // Append the link to the body
-        document.getElementById('download-btn').style.display = 'block'; // Show the download button
+        document.body.appendChild(a); 
+        document.getElementById('download-btn').style.display = 'block'; 
         document.getElementById('download-btn').onclick = function() {
-            a.click(); // Trigger the click on the hidden link
-            a.remove(); // Remove the link from the DOM after clicking
+            a.click(); 
+            a.remove(); 
         };
 
     } catch (error) {
