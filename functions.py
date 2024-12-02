@@ -24,6 +24,10 @@ def create_unique_file_hash(username: str, filesize: str, filetype: str) -> str:
     file_hash.update(hash_input.encode('utf-8'))
     return file_hash.hexdigest()
 
+def generate_file_hash(file_hash, videobitrate, audiobitrate, videocodec, audiocodec, resolution, framerate, filetype):
+    hash_input = f"{file_hash}|{videobitrate}|{audiobitrate}|{videocodec}|{audiocodec}|{resolution}|{framerate}|{filetype}"
+    hash_object = hashlib.sha256(hash_input.encode())
+    return hash_object.hexdigest()
 
 def validate_password(password: str) -> bool:
     has_uppercase = re.search(r"[A-Z]", password)

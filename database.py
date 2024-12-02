@@ -14,11 +14,21 @@ cursor.execute("""
         SessionId TEXT,
         Username TEXT UNIQUE NOT NULL,
         Email TEXT UNIQUE NOT NULL,
-        Passwordhash TEXT NOT NULL
+        Passwordhash TEXT NOT NULL,
+        AmountOfConvertedFiles INTEGER
     );           
 """)
 cursor.execute("""
-    CREATE TABLE IF NOT EXISTS FileHashMapping (
+    CREATE TABLE IF NOT EXISTS UploadedFiles (
+        Hash TEXT PRIMARY KEY,    
+        Path TEXT NOT NULL,       
+        Username TEXT NOT NULL,   
+        Private INTEGER DEFAULT 0
+    );
+""")
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ConvertedFiles (
+        OriginHash TEXT NOT NULL,
         Hash TEXT PRIMARY KEY,    
         Path TEXT NOT NULL,       
         Username TEXT NOT NULL,   
@@ -76,7 +86,7 @@ def add_user(username, email, passwordhash):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO Users (username, email, Passwordhash) VALUES (?,?,?)", (username, email, passwordhash))
+        cursor.execute("""INSERT INTO Users (Username, Email, Passwordhash, AmountOfConvertedFiles) VALUES (?, ?, ?, ?)""", (username, email, passwordhash, 0))
     except:
         return("User is already registered")
     print("Success")
@@ -95,8 +105,11 @@ def add_user(username, email, passwordhash):
         for file in files:
             if os.path.isfile(file):
                 os.remove(file)
-    os.mkdir(f"{directory}/uploaded")
-    os.mkdir(f"{directory}/converted")
+    try:
+        os.mkdir(f"{directory}/uploaded")
+        os.mkdir(f"{directory}/converted")
+    except:
+        print("Folders already created")
     conn.commit()
     conn.close()
 
@@ -200,7 +213,7 @@ def add_file(hash: str, path: str, username: str, private: bool):
     try:
         private_value = 1 if private else 0
         cursor.execute("""
-            INSERT INTO FileHashMapping (Hash, Path, Username, Private)
+            INSERT INTO UploadedFiles (Hash, Path, Username, Private)
             VALUES (?, ?, ?, ?)
         """, (hash, path, username, private_value))
         conn.commit()
@@ -214,7 +227,7 @@ def is_hash_in_table(hash: str) -> bool:
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT 1 FROM FileHashMapping WHERE Hash = ? LIMIT 1;", (hash,))
+        cursor.execute("SELECT 1 FROM UploadedFiles WHERE Hash = ? LIMIT 1;", (hash,))
         result = cursor.fetchone()
         return result is not None
     finally:
@@ -224,7 +237,7 @@ def get_file_path_by_hash(hash: str):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT Path FROM FileHashMapping WHERE Hash = ?", (hash,))
+        cursor.execute("SELECT Path FROM UploadedFiles WHERE Hash = ?", (hash,))
         result = cursor.fetchone()
         if result:
             return result[0] 
@@ -237,7 +250,7 @@ def all_file_hashes() -> list:
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT Hash FROM FileHashMapping")
+        cursor.execute("SELECT Hash FROM UploadedFiles")
         hashes = cursor.fetchall() 
         return [hash[0] for hash in hashes]  
     finally:
@@ -247,9 +260,9 @@ def delete_all_file_hash_mappings():
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM FileHashMapping") 
+        cursor.execute("DELETE FROM UploadedFiles") 
         conn.commit()
-        print("Alle Einträge in FileHashMapping wurden gelöscht.")
+        print("Alle Einträge in UploadedFiles wurden gelöscht.")
     finally:
         conn.close()
 
@@ -257,7 +270,7 @@ def file_is_private(filehash: str) -> bool:
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT Private FROM FileHashMapping WHERE hash = ?", (filehash,))
+        cursor.execute("SELECT Private FROM UploadedFiles WHERE hash = ?", (filehash,))
         result = cursor.fetchone()
         if result:
             return bool(result[0])  #1 meaning true, 0 meaning false
@@ -269,10 +282,67 @@ def get_username_by_filehash(filehash: str) -> str:
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT Username FROM FileHashMapping WHERE hash = ?", (filehash,))
+        cursor.execute("SELECT Username FROM UploadedFiles WHERE hash = ?", (filehash,))
         result = cursor.fetchone()
         if result:
             return result[0]  
         return None
     finally:
         conn.close()
+
+def delete_hash(hash_to_delete):
+    try:
+        conn = sqlite3.connect('users.db')  
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM UploadedFiles
+            WHERE Hash = ?;
+        """, (hash_to_delete,))
+        conn.commit()
+        return ("success")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        return ("false")  
+    finally:
+        conn.close()
+
+def add_converted_file(origin_hash, file_hash, path, username, private=0):
+    try:
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO ConvertedFiles (
+                OriginHash, Hash, Path, Username, Private
+            )
+            VALUES (?, ?, ?, ?, ?);
+        """, (origin_hash, file_hash, path, username, private))
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return False
+
+def cleanup_table(table_name):
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM {table_name}")
+    rows = cursor.fetchall()
+    if table_name == "UploadedFiles":
+        index_of_path = 1
+    else:
+        index_of_path = 2
+    for row in rows:
+        file_path = row[index_of_path]
+        if not os.path.exists(file_path):
+            print(f"File missing: {file_path}. Removing entry from {table_name}.")
+            cursor.execute(f"DELETE FROM {table_name} WHERE Path = ?", (file_path,))
+            conn.commit()
+        else:
+            print(f"File found at {file_path}")
+    conn.close()
+
+
+cleanup_table("UploadedFiles")
+cleanup_table("ConvertedFiles")
+print(all_file_hashes())
+#delete_all_file_hash_mappings()

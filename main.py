@@ -2,6 +2,7 @@ import os
 import re
 import cv2
 import uvicorn
+import ffmpeg
 import secrets
 import mimetypes
 from typing import List
@@ -17,12 +18,12 @@ import os
 import json
 from fastapi import FastAPI, File, APIRouter, Depends, HTTPException, Request, UploadFile, status
 from classes import FileProperties, SelectValue, SelectValuesSubtitler, UserLogin, UserRegister
-from database import add_user, verify_user, delete_user, change_email, change_passwordhash, change_username, validate_password, is_valid_email, hash_password, get_user_by_session, add_session_to_user, get_user_by_username, remove_session_from_db, add_file, is_hash_in_table, get_file_path_by_hash, file_is_private, get_username_by_filehash
+from database import add_user, verify_user, delete_user, change_email, change_passwordhash, change_username, validate_password, is_valid_email, hash_password, get_user_by_session, add_session_to_user, get_user_by_username, remove_session_from_db, add_file, is_hash_in_table, get_file_path_by_hash, file_is_private, get_username_by_filehash, delete_hash, add_converted_file
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
-from filter_functions import add_subtitles
-from functions import file_exists, format_file_size, create_unique_file_hash
+from filter_functions import add_subtitles, create_conversion_string, get_video_properties
+from functions import file_exists, format_file_size, create_unique_file_hash, generate_file_hash
 from classes import FileProperties
 from colorgrading import color_grade_image
 #model = whisper.load_model("medium")
@@ -161,25 +162,7 @@ async def upload_file(request: Request, file: UploadFile):
         add_file(file_hash, os.path.normpath(file_path), username, True)
     return {"access-token": file_hash}
 
-@app.post("/convert")
-async def convert_file(select_value: SelectValue):
-    filetype = select_value.filetype
-    videocodec = select_value.videocodec
-    audiocodec = select_value.audiocodec
-    videobitrate = select_value.videobitrate
-    audiobitrate = select_value.audiobitrate
-    resolution = select_value.resolution
-    framerate = select_value.framerate
-    original_file_path = save_to
-    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + filetype)
-    #command for converting using ffmpeg
-    command = convert(original_file_path, converted_file_name, vc = videocodec, ac = audiocodec, vb = videobitrate, ab = audiobitrate, resolution = resolution, framerate = framerate) #ogg should be converted with high vb
-    #running command in powershell
-    result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding = "utf-8")    
-    try:       
-        return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/give")
 async def subtitle(select_value: SelectValuesSubtitler):
@@ -254,7 +237,6 @@ async def list_user_files(request: Request):
     user_upload_dir = user_dir / "uploaded"
     if not user_upload_dir.exists():
         return f"<h1>No files found for user: {username}</h1>"
-
     files = [str(file.name) for file in user_upload_dir.iterdir() if file.is_file()]
     return JSONResponse(content={"files": files})
 
@@ -273,6 +255,133 @@ async def serve_file_page(filehash: str):
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="HTML page not found")
 
+@app.get("/{service}/{options}/{filehash}")
+async def convert(request: Request, service: str, options: str, filehash: str,):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    username = get_user_by_session(session_id)[1]
+    options = options.split("+")
+    file_path = get_file_path_by_hash(filehash)
+    file_name = Path(file_path).stem
+    properties = get_video_properties(f"C:\\Users\\jonas\\OneDrive - Kantonsschule Romanshorn\\converter-project\\uploads\\{username}\\converted\\{file_name}_subtitled{file_extension}")
+    new_file_hash = generate_file_hash(filehash, properties["videobitrate"], properties["audiobitrate"], properties["videocodec"], properties["audiocodec"], properties["resolution"], properties["framerate"], properties["filetype"])
+    if service == "convert":
+        filetype = options[0]
+        parsed_options = {
+            "videobitrate": None,
+            "audiobitrate": None,
+            "videocodec": None,
+            "audiocodec": None,
+            "resolution": None,
+            "framerate": None,
+            "filetype": None
+        }
+        for option in options:
+            if option.startswith("vb-"):  # Video bitrate
+                parsed_options["videobitrate"] = option.split("-")[1]
+            elif option.startswith("ab-"):  # Audio bitrate
+                parsed_options["audiobitrate"] = option.split("-")[1]
+            elif option.startswith("vc-"):  # Video codec
+                parsed_options["videocodec"] = option.split("-")[1]
+            elif option.startswith("ac-"):  # Audio codec
+                parsed_options["audiocodec"] = option.split("-")[1]
+            elif option.startswith("res-"):  # Resolution (e.g., 1080p)
+                parsed_options["resolution"] = option
+            elif option.startswith("fps-"):  # Framerate (e.g., fr:30)
+                parsed_options["framerate"] = option.split("-")[1]
+            elif option in ["mp4", "avi", "mkv"]:  # Filetype check
+                parsed_options["filetype"] = option
+        command = create_conversion_string("C:\\Users\\jonas\\OneDrive - Kantonsschule Romanshorn\\converter-project\\" + file_path, f"C:\\Users\\jonas\\OneDrive - Kantonsschule Romanshorn\\converter-project\\uploads\\{username}\\converted\\output.{filetype}", vc = parsed_options["videocodec"], ac = parsed_options["audiocodec"], vb = parsed_options["videobitrate"], ab = parsed_options["audiobitrate"], resolution = parsed_options["resolution"], framerate = parsed_options["framerate"])
+        result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding = "utf-8")    
+        print("Return Code:", result.returncode)
+        print("Standard Output:", result.stdout)
+        print("Standard Error:", result.stderr)
+        return {"msg": create_unique_file_hash(get_user_by_session(session_id)[1],)}#create entry in db with count for converted data
+    if service == "stt":
+        _, file_extension = os.path.splitext(file_path)
+        language = None
+        task = None
+        model = None
+        for option in options:
+            if option == "transcribe":
+                task = "transcribe"
+            elif option == "translate":
+                task = "translate"
+            elif option.startswith("lang-"):
+                language = option.split("-")[1]
+            elif option.startswith("model-"):
+                model = option.split("-")[1]
+        command_1, command_2 = add_subtitles("C:\\Users\\jonas\\OneDrive - Kantonsschule Romanshorn\\converter-project\\" + file_path, f"C:\\Users\\jonas\\OneDrive - Kantonsschule Romanshorn\\converter-project\\uploads\\{username}\\converted\\{file_name}_subtitled{file_extension}", username, language = language, task = task, model = model)
+        print(command_1)
+        print(command_2)
+        result = subprocess.run(command_1, capture_output=True, text=True)
+        print(result.stdout)
+        print(result.stderr)    
+        result = subprocess.run(command_2, capture_output=True, text=True, encoding="utf-8")
+        print(result.stdout)
+        print(result.stderr)
+        add_converted_file(filehash, new_file_hash, file_path, username)
+        return{"msg": f"sucessfully converted file with filehash: {new_file_hash}"}
+    if service == "colorgrade":
+        pass
+    if service == "upscale":
+        pass
+    return
+
+
+@app.get("/download/{filehash}")
+async def download_file(request: Request, filehash: str):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    if get_user_by_session(session_id)[1] != get_username_by_filehash(filehash):
+        return RedirectResponse(url="/")
+    file_path = get_file_path_by_hash(filehash)
+    if os.path.isfile(file_path):
+        return FileResponse(path=file_path, filename=f"converted_file.mp4")
+    else:
+        delete_hash(filehash)
+        raise HTTPException(status_code=404, detail=f"File not found")
+@app.get("/delete/{filehash}")
+async def delete_file(request: Request, filehash: str):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    if get_user_by_session(session_id)[1] != get_username_by_filehash(filehash):
+        return RedirectResponse(url="/")
+    file_path = get_file_path_by_hash(filehash)
+    try:
+        delete_hash(filehash)
+        if os.path.isfile(file_path):
+            os.remove(file_path)  
+            print(f"File deleted: {file_path}")
+            return{"msg":"successful"}
+        else:
+            print("File not found")
+            return{"msg": "file not found"}
+    except Exception as e:
+        print(f"An error occurred while deleting the file: {e}")
+        raise HTTPException(status_code=404, detail=f"File not found")
+@app.post("/convert")
+async def convert_file(select_value: SelectValue):
+    filetype = select_value.filetype
+    videocodec = select_value.videocodec
+    audiocodec = select_value.audiocodec
+    videobitrate = select_value.videobitrate
+    audiobitrate = select_value.audiobitrate
+    resolution = select_value.resolution
+    framerate = select_value.framerate
+    original_file_path = save_to
+    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + filetype)
+    #command for converting using ffmpeg
+    command = convert(original_file_path, converted_file_name, vc = videocodec, ac = audiocodec, vb = videobitrate, ab = audiobitrate, resolution = resolution, framerate = framerate) #ogg should be converted with high vb
+    #running command in powershell
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding = "utf-8")    
+    try:       
+        return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)
 
