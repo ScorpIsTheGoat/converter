@@ -1,22 +1,240 @@
+/* Global Styles */
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    padding: 20px;
-  }
-  
-  h1 {
-    color: #333;
-  }
-  
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  li {
-    margin: 5px 0;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-  }
-  
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background-color: #1e1e2f;
+  color: #ffffff;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.file-explorer {
+  width: 100%;
+  background-color: #28293d;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.file-explorer h2 {
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* File Item Styles */
+.file-item {
+  display: flex;
+  align-items: center;
+  background-color: #34344e;
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.file-item:hover {
+  background-color: #444465;
+}
+
+.file-thumbnail {
+  width: 60px;
+  height: 60px;
+  background-color: #5c5c81;
+  border-radius: 4px;
+  margin-right: 15px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.file-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-info strong {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.file-info span {
+  font-size: 12px;
+  color: #c4c4c4;
+}
+
+.file-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.file-actions button {
+  padding: 5px 10px;
+  font-size: 12px;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+.file-actions .view-button {
+  background-color: #00c853;
+}
+
+.file-actions .download-button {
+  background-color: #007bff;
+}
+
+.file-actions button:hover {
+  opacity: 0.8;
+}
+
+/* Privacy Toggle Styles */
+.file-privacy {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.file-privacy label {
+  font-size: 14px;
+  margin-right: 10px;
+  color: #ffffff;
+}
+
+.privacy-toggle {
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.privacy-toggle option {
+  padding: 5px;
+}
+
+/* Toolbar Styles */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.toolbar-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  background: #343a40;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.toolbar-button:hover {
+  background: #495057;
+}
+
+.toolbar-button:active {
+  background: #212529;
+}
+.file-privacy {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-privacy label {
+  font-size: 14px;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.privacy-toggle {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: 1px solid #666;
+  border-radius: 5px;
+  background-color: #34344e;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.privacy-toggle option {
+  padding: 5px;
+  background-color: #28293d;
+  color: #ffffff;
+}
+
+.privacy-toggle:hover {
+  background-color: #444465;
+}
+
+.privacy-toggle:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #444465;
+}
+.save-privacy-button {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  background-color: #28a745;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: 10px;
+}
+
+.save-privacy-button:hover {
+  background-color: #218838;
+}
+
+.save-privacy-button:active {
+  background-color: #1e7e34;
+}
+
+.save-privacy-button:focus {
+  outline: none;
+}
+.hidden {
+  display: none;
+}
+
+#startConvertingButton {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#startConvertingButton:hover {
+  background-color: #0056b3;
+}

@@ -9,6 +9,9 @@ import re
 import hashlib
 import bcrypt
 from database import *
+from PIL import Image
+import io
+from moviepy.editor import VideoFileClip
 sr = cv2.dnn_superres.DnnSuperResImpl_create()
 path = "ai-models/EDSR_x2.pb"
 sr.readModel(path)
@@ -61,3 +64,72 @@ def format_file_size(size_bytes):
         return f"{size_bytes / (1024 ** 2):.2f} MB"
     else:
         return f"{size_bytes / (1024 ** 3):.2f} GB"
+
+def extract_thumbnail(video_path: str) -> bytes:
+    try:
+        # Open the video file
+        cap = cv2.VideoCapture(video_path)
+
+        if not cap.isOpened():
+            raise Exception("Unable to open video file.")
+
+        # Read the first frame
+        ret, frame = cap.read()
+
+        if not ret:
+            raise Exception("Failed to read the first frame from the video.")
+
+        # Convert the frame from BGR to RGB format
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        # Convert to a PIL Image
+        image = Image.fromarray(frame_rgb)
+
+        # Save the image to a byte stream
+        img_byte_array = io.BytesIO()
+        image.save(img_byte_array, format="JPEG", quality=85)  # Save as JPEG with good quality
+        img_byte_array.seek(0)
+
+        # Release the video capture
+        cap.release()
+
+        return img_byte_array.read()
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+        
+
+def is_video_file(file_path):
+    video_extensions = ['.mp4', '.mkv', '.avi', '.mov', '.flv', '.webm', '.wmv']
+    _, ext = os.path.splitext(file_path)
+    return ext.lower() in video_extensions
+
+def get_video_duration(file_path):
+    try:
+        clip = VideoFileClip(file_path)
+        return clip.duration  
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+def image_to_bytes(image_path):
+    try:
+        with Image.open(image_path) as img:
+            byte_io = io.BytesIO()
+            img.save(byte_io, format="JPEG")
+            byte_io.seek(0)
+            return byte_io.read()
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+def is_image_file(filepath):
+    try:
+        # Try opening the file with Pillow
+        with Image.open(filepath) as img:
+            # If the file is a valid image, return True
+            return True
+    except IOError:
+        # If IOError is raised, it means the file is not a valid image
+        return False

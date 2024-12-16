@@ -1,118 +1,95 @@
-//upload
-document.getElementById('file').addEventListener('change', async function(event) {
-    event.preventDefault();
-    document.getElementById('convert-btn').style.display = 'block'; 
-    const fileInput = document.getElementById('file');
-    const formData = new FormData();
-    const files = fileInput.files;
-    for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]); 
-    }
-    const fileList = document.getElementById('fileList');
-    fileList.innerHTML = ''; 
-    Array.from(files).forEach(file => {
-        const fileItem = document.createElement('div');
-        fileItem.classList.add('file-item');
-        const fileTitle = document.createElement('h3');
-        fileTitle.textContent = file.name;
-        const fileDetails = document.createElement('p');
-        fileDetails.classList.add('file-details');
-        fileDetails.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB | Type: ${file.type}`;
-        const formatSelect = document.createElement('select');
-        formatSelect.name = `format-${file.name}`;
-        formatSelect.innerHTML = `
-            <option value="mp4">mp4</option>
-            <option value="mov">mov</option>
-            <option value="avi">avi</option>
-            <option value="mkv">mkv</option>
-            <option value="flv">flv</option>
-            <option value="wmv">wmv</option>
-            <option value="webm">webm</option>
-            <option value="mp3">mp3</option>
-            <option value="aac">aac</option>
-            <option value="wav">wav</option>
-            <option value="ogg">ogg</option>
-            <option value="gif">gif</option>
-        `;
-        fileItem.appendChild(fileTitle);
-        fileItem.appendChild(fileDetails);
-        fileItem.appendChild(formatSelect);
-        
-        // Append file item to the grid
-        fileList.appendChild(fileItem);
-    });
-    try {
-        const response = await fetch('/converter-upload', {
-            method: 'POST',
-            body: formData
-        });
+const hashList = document.getElementById('hashList');
+const fileHashes = getFileHashesFromURL();
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+function getFileHashesFromURL() {
+  // Get the current URL path
+  const path = window.location.pathname;
 
-        const data = await response.json();
-        console.log('Upload successful:', data);
-    } catch (error) {
-        console.error('Error during file upload:', error);
-    }
-});
+  // Extract the part after "/converter/"
+  const prefix = "/converter/";
+  if (path.startsWith(prefix)) {
+      const combinedFileHashes = path.slice(prefix.length);
 
-document.getElementById('convert-btn').addEventListener('click', async function (event) {
-    event.preventDefault();
-    document.getElementById('subtitleForm').style.display = 'none'
-    document.getElementById('convert-btn').style.display = 'none'; 
-    document.getElementsByClassName('dropdown')[0].style.display = 'block';
-    console.log("Convert Button has been clicked")
-    let filetypeToConvertTo = document.getElementById('format').value;
-    let videocodecToConvertTo = document.getElementById('videocodec').value;
-    let audiocodecToConvertTo = document.getElementById('audiocodec').value;
-    let videobitrateToConvertTo = document.getElementById('videobitrate').value;
-    let audiobitrateToConvertTo = document.getElementById('audiobitrate').value;
-    let resoultionToConvertTo = document.getElementById('resolution').value;
-    let framerateToConvertTo = document.getElementById('framerate').value;
-    console.log(filetypeToConvertTo);
-    try {
-        let response = await fetch('/convert', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 
-                filetype: filetypeToConvertTo,
-                videocodec: videocodecToConvertTo,
-                audiocodec: audiocodecToConvertTo,
-                videobitrate: videobitrateToConvertTo,
-                audiobitrate: audiobitrateToConvertTo,
-                resolution: resoultionToConvertTo,
-                framerate: framerateToConvertTo
-            })
-        });
+      // Split the combined hashes by "+"
+      const fileHashes = combinedFileHashes.split("+");
+      return fileHashes;
+  }
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-        }
+  // Return an empty array if the URL doesn't match
+  return [];
+}async function handleClick(action) {
+  if (action === 'FileType') {
+      const response = await fetch(`/filetype/check?combined_filehashes=${fileHashes.join("+")}`);
+      const data = await response.json();
 
-        let blob = await response.blob();
-        let url = window.URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        a.download = `converted_file.${filetypeToConvertTo}`;
-        a.id = 'download-link';
-        
-        document.body.appendChild(a); 
-        document.getElementById('download-btn').style.display = 'block'; 
-        document.getElementById('download-btn').onclick = function() {
-            a.click(); 
-            a.remove(); 
-        };
+      const optionsDiv = document.getElementById('optionsDiv');
+      optionsDiv.innerHTML = ''; // Clear previous options
 
-    } catch (error) {
-        console.log("Error occured")
-    }
-});
-function toggleDropdown() {
-    document.getElementsByClassName("dropdown-content")[0].classList.toggle("show");
+      if (data.all_same) {
+          const filetype = data.filetype;
+
+          // Display filetype adjustment option
+          const filetypeLabel = document.createElement('p');
+          filetypeLabel.textContent = `All files are of type: ${filetype}`;
+          optionsDiv.appendChild(filetypeLabel);
+
+          const filetypeInput = document.createElement('input');
+          filetypeInput.type = 'text';
+          filetypeInput.placeholder = 'New filetype';
+          filetypeInput.id = 'newFileType';
+          optionsDiv.appendChild(filetypeInput);
+
+          // If the filetype is video, add additional options
+          if (filetype === 'video') {
+              const parameters = [
+                  "videobitrate",
+                  "audiobitrate",
+                  "videocodec",
+                  "audiocodec",
+                  "resolution",
+                  "framerate"
+              ];
+
+              parameters.forEach(param => {
+                  const label = document.createElement('label');
+                  label.textContent = param;
+                  const input = document.createElement('input');
+                  input.type = 'text';
+                  input.id = param;
+                  optionsDiv.appendChild(label);
+                  optionsDiv.appendChild(input);
+                  optionsDiv.appendChild(document.createElement('br'));
+              });
+          }
+
+          // Submit button
+          const submitButton = document.createElement('button');
+          submitButton.textContent = 'Submit';
+          submitButton.onclick = () => submitFileTypeOptions();
+          optionsDiv.appendChild(submitButton);
+      } else {
+          alert('Files are of different types, file type adjustment is not possible.');
+      }
+  }
 }
 
+function submitFileTypeOptions() {
+  const newFileType = document.getElementById('newFileType').value;
+  const videoParams = [
+      "videobitrate",
+      "audiobitrate",
+      "videocodec",
+      "audiocodec",
+      "resolution",
+      "framerate"
+  ];
 
+  const parameters = { filetype: newFileType };
+  videoParams.forEach(param => {
+      const input = document.getElementById(param);
+      if (input) parameters[param] = input.value;
+  });
+
+  console.log('Submitting options:', parameters);
+  // Perform an API request to process these options as needed
+}

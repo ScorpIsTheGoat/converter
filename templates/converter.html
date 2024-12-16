@@ -1,52 +1,30 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Converter</title>
+    <title>File Hashes Tool</title>
     <link rel="stylesheet" href="/static/converter.css">
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="static/images/convert-3209.svg" alt="Logo"/>
-        </div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="converter">Converter</a></li>
-                <li><a href="subtitler">Subtitler</a></li>
-                <li><a href="colorgrader">ColorGrader</a></li>
-                <li><a href="upscaler">Upscaler</a></li>
-            </ul>
-        </nav>
-        <div class="auth-buttons">
-            <a href="login.html" class="button">Login</a>
-            <a href="register.html" class="button">Register</a>
-        </div>
-    </header>
+    <h1>File Hashes and Tools</h1>
 
-    <div class="container">
-        <h1>File Converter</h1>
-        <form id="upload-form" enctype="multipart/form-data" method="POST" action="http://localhost:8000/upload/">
-            <div class="form-group">
-                <label for="file">Choose files to convert:</label>
-                <label for="file" id="upload-icon" class="upload-icon">
-                    <img src="static/images/upload.svg" alt="Upload Icon" width="60" height="60">
-                    <input type="file" id="file" name="file" multiple hidden>
-                </label>
-            </div>
-            <div id="fileList" class="file-grid"></div> 
-            
-            <button id="convert-btn" type="submit" style="display: none;">Convert</button>
-            
-            <div id="progress">
-                <div id="bar"></div>
-            </div>
-            
-            <button id="download-btn" style="display:none;">Download Converted File</button>
-        </form>
+    <div class="file-hashes">
+        <h2>File Hashes:</h2>
+        <ul id="hashList">
+            {% for hash in filehashes %}
+                <li>{{ hash }}</li>
+            {% endfor %}
+        </ul>
     </div>
-    
+
+    <div class="buttons">
+        <button onclick="handleClick('FileType')">FileType</button>
+        <button onclick="handleClick('ColorGrader')">ColorGrader</button>
+        <button onclick="handleClick('Subtitler')">Subtitler</button>
+        <button onclick="handleClick('Upscaler')">Upscaler</button>
+    </div>
+
     <script src="/static/converter.js"></script>
 </body>
 </html>

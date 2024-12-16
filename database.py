@@ -20,10 +20,16 @@ cursor.execute("""
 """)
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS UploadedFiles (
-        Hash TEXT PRIMARY KEY,    
-        Path TEXT NOT NULL,       
-        Username TEXT NOT NULL,   
-        Private INTEGER DEFAULT 0
+        Hash TEXT PRIMARY KEY,
+        Path TEXT NOT NULL,
+        Username TEXT NOT NULL,
+        Private INTEGER DEFAULT 0,
+        FileName TEXT NOT NULL,
+        FileType TEXT NOT NULL,      
+        FileSize INTEGER NOT NULL,  
+        Thumbnail BLOB,             
+        Duration INTEGER,           
+        Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
     );
 """)
 cursor.execute("""
@@ -207,15 +213,16 @@ def remove_session_from_db(session_id: str):
         print(f"Error removing session from db: {e}")
         raise HTTPException(status_code=500, detail="Failed to remove session")
 
-def add_file(hash: str, path: str, username: str, private: bool):
+def add_file(hash: str, path: str, username: str, private: bool, filename: str, filetype: str, filesize: int, thumbnail: bytes, duration=None):
     conn = sqlite3.connect("users.db")
     cursor = conn.cursor()
     try:
         private_value = 1 if private else 0
+        
         cursor.execute("""
-            INSERT INTO UploadedFiles (Hash, Path, Username, Private)
-            VALUES (?, ?, ?, ?)
-        """, (hash, path, username, private_value))
+            INSERT INTO UploadedFiles (Hash, Path, Username, Private, FileName, FileType, FileSize, Thumbnail, Duration)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (hash, path, username, private_value, filename, filetype, filesize, thumbnail, duration))
         conn.commit()
         print(f"File with hash '{hash}' added successfully.")
     except sqlite3.IntegrityError as e:
@@ -339,10 +346,127 @@ def cleanup_table(table_name):
             conn.commit()
         else:
             print(f"File found at {file_path}")
+    print(f"Cleaned up table {table_name}")
     conn.close()
+    return
 
+def delete_all_entries(table_name):
+    try:
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute(f"DELETE FROM {table_name};")
+        conn.commit()  
+        print(f"All entries deleted from the table: {table_name}")
+
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+
+    finally:
+        if conn:
+            conn.close()
+    return
+
+def get_hash_by_path(file_path):
+    try:
+        conn = sqlite3.connect("users.db")
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT Hash FROM UploadedFiles WHERE Path = ?;
+        """, (file_path,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+def increase_amount_of_converted_files(session_id, increment):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE Users
+            SET AmountOfConvertedFiles = AmountOfConvertedFiles + ?
+            WHERE SessionId = ?;
+        """, (increment, session_id))
+        conn.commit()
+        if cursor.rowcount == 0:
+            print("No user found with the given SessionId.")
+        else:
+            print(f"Successfully updated {cursor.rowcount} record(s).")
+
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+
+    finally:
+        # Close the connection
+        conn.close()
+def update_privacy_db(filehash, privacy):
+    conn = sqlite3.connect('users.db')
+    cursor = conn.cursor()
+    privacy_value = 0 if privacy.lower() == 'public' else 1 if privacy.lower() == 'private' else None
+    if privacy_value is None:
+        print("Invalid privacy value. Please use 'public' or 'private'.")
+        return
+    cursor.execute("""
+        UPDATE UploadedFiles
+        SET Private = ?
+        WHERE Hash = ?
+    """, (privacy_value, filehash))
+    conn.commit()
+    if cursor.rowcount == 0:
+        print(f"No file found with hash {filehash}.")
+    else:
+        print(f"Privacy of file {filehash} updated to {privacy}.")
+def get_file_properties(file_path: str, username: str):
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT * 
+            FROM UploadedFiles
+            WHERE Path = ? AND Username = ?;
+        """, (file_path, username))
+        file = cursor.fetchone()
+
+        if file:
+            file_properties = {
+                "hash": file[0],         
+                "path": file[1],         
+                "username": file[2],     
+                "private": file[3],      
+                "file_name": file[4],    
+                "file_type": file[5],    
+                "file_size": file[6],    
+                "thumbnail": file[7],    
+                "duration": file[8],     
+                "date": file[9],         
+            }
+            return file_properties
+        else:
+            return None
+    finally:
+        conn.close()
+        
+def get_file_type_by_hash(filehash: str) -> str:
+    conn = sqlite3.connect("user.db")
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT FileType FROM UploadedFiles WHERE Hash = ?", (filehash,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+    finally:
+        conn.close()
+#delete_all_entries("Users")
+for user in get_all("Users"):
+    print(user)
+for item in get_all("UploadedFiles"):
+    print(item)
 
 cleanup_table("UploadedFiles")
 cleanup_table("ConvertedFiles")
+
 print(all_file_hashes())
 #delete_all_file_hash_mappings()

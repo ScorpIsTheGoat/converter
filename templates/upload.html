@@ -1,41 +1,27 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload</title>
+    <title>File Uploader</title>
     <link rel="stylesheet" href="/static/upload.css">
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="static/images/convert-3209.svg" alt="Logo"/>
-        </div>
-        <nav>
-            <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="converter">Converter</a></li>
-                <li><a href="subtitler">Subtitler</a></li>
-                <li><a href="colorgrader">ColorGrader</a></li>
-                <li><a href="upscaler">Upscaler</a></li>
-            </ul>
-        </nav>
-        <div class="auth-buttons">
-            <a href="login.html" class="button">Login</a>
-            <a href="register.html" class="button">Register</a>
-        </div>
-    </header>
-
     <div class="container">
-        <h1>Upload File</h1>
-        <input type="file" id="file" name="file" required>
-
-        <div id="progress">
-            <div id="bar"></div>
-        </div>
-
-        <button id="download-btn" style="display:none;">Download File</button>
+        <h1>Upload Files</h1>
+        <form id="uploadForm">
+            <input type="file" id="fileInput" name="files" multiple>
+            <button type="submit" id="uploadButton">Upload</button>
+        </form>
+        <div id="status"></div>
     </div>
-
+    <div class="file-info">
+        <p>Video File: <span id="videoFileName">N/A</span></p>
+        <p>File Hash: <span id="videoFileHash">N/A</span></p>
+        <p>File Size: <span id="videoFileSize">N/A</span></p>
+        <p>Uploading Date: <span id="uploadingDate">N/A</span></p>
+        <p>Private: <span id="isPrivate">N/A</span></p>
+    </div>
     <script src="/static/upload.js"></script>
 </body>
 </html>

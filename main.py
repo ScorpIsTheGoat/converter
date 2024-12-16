@@ -4,8 +4,12 @@ import cv2
 import uvicorn
 import ffmpeg
 import secrets
+import base64
+import shutil
 import mimetypes
 from typing import List
+import io
+from PIL import Image
 from pathlib import Path
 import pytesseract
 from fastapi import FastAPI, HTTPException, Cookie, Response
@@ -18,12 +22,12 @@ import os
 import json
 from fastapi import FastAPI, File, APIRouter, Depends, HTTPException, Request, UploadFile, status
 from classes import FileProperties, SelectValue, SelectValuesSubtitler, UserLogin, UserRegister
-from database import add_user, verify_user, delete_user, change_email, change_passwordhash, change_username, validate_password, is_valid_email, hash_password, get_user_by_session, add_session_to_user, get_user_by_username, remove_session_from_db, add_file, is_hash_in_table, get_file_path_by_hash, file_is_private, get_username_by_filehash, delete_hash, add_converted_file
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from database import add_user, verify_user, delete_user, change_email, change_passwordhash, change_username, validate_password, is_valid_email, hash_password, get_user_by_session, add_session_to_user, get_user_by_username, remove_session_from_db, add_file, is_hash_in_table, get_file_path_by_hash, file_is_private, get_username_by_filehash, delete_hash, add_converted_file, get_hash_by_path, increase_amount_of_converted_files, get_file_properties, update_privacy_db, get_file_type_by_hash
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from filter_functions import add_subtitles, create_conversion_string, get_video_properties
-from functions import file_exists, format_file_size, create_unique_file_hash, generate_file_hash
+from functions import file_exists, format_file_size, create_unique_file_hash, generate_file_hash, extract_thumbnail, is_video_file, is_image_file, get_video_duration, image_to_bytes
 from classes import FileProperties
 from colorgrading import color_grade_image
 #model = whisper.load_model("medium")
@@ -73,7 +77,7 @@ def read_register(request: Request):
 @app.get("/upload", response_class=HTMLResponse)
 def read_upload(request: Request):
     if not request.cookies.get("session_id"):
-        return RedirectResponse(url="/")
+        return RedirectResponse(url="/login")
     context = {"request" : request}
     return templates.TemplateResponse("upload.html", context)
 
@@ -95,6 +99,8 @@ def read_colorgrade(request: Request):
 @app.get("/my-files", response_class=HTMLResponse)
 def read_my_files(request: Request):
     context = {"request" : request}
+    if not request.cookies.get("session_id"):
+        return RedirectResponse(url="/login")
     return templates.TemplateResponse("files.html", context)
 
 @app.get("/file/{filehash}", response_class=HTMLResponse)
@@ -140,63 +146,50 @@ async def register_user(select_value: UserRegister):
     return RedirectResponse(url="/", status_code=303)
 
 @app.post("/upload-post")
-async def upload_file(request: Request, file: UploadFile):
+async def upload_files(request: Request, files: List[UploadFile] = File(...)):
     session_id = request.cookies.get("session_id")
     if not session_id:
-        print("not logged in")
-        return RedirectResponse("/", status_code=303)
-    user = get_user_by_session(session_id)
-    username = user[1]
-    user_dir = UPLOAD_DIR / username
-    file_hash = create_unique_file_hash(username, file.filename, file.size)
-
-    if is_hash_in_table(file_hash):
-        return {"access-token": file_hash}
-    file_path = user_dir / "uploaded" / file.filename
-    data = await file.read()
-    if not os.path.exists(user_dir):
-        os.makedirs(user_dir)
-    with open(file_path, 'wb') as f:
-        f.write(data)
-        print("Finished uploading:", file.filename)
-        add_file(file_hash, os.path.normpath(file_path), username, True)
-    return {"access-token": file_hash}
-
-
-
-@app.post("/give")
-async def subtitle(select_value: SelectValuesSubtitler):
-    language = select_value.language
-    task = select_value.task
-    model = select_value.model
-    inputed_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + uploaded_file.file_type)
-    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted" + uploaded_file.file_type)
-    command_1, command_2 = add_subtitles(inputed_file_name, converted_file_name, language = language, task = task, model = model)
-    #first command creates subtitles
-    result = subprocess.run(command_1, capture_output=True, text=True)
-    #second command adds subtitles  
-    result = subprocess.run(command_2, capture_output=True, text=True, encoding="utf-8") 
-    try:       
-        return FileResponse(path=converted_file_name, filename=f"converted_file.mp4")
+        return HTTPException(status_code=400, detail="not logged in")
+    try:
+        uploaded_files = []
+        username = get_user_by_session(session_id)[1]
+        for file in files:
+            file_location = os.path.join(f"uploads/{username}/uploaded/", file.filename)
+            filehash = create_unique_file_hash(username, file.filename, file.size)
+            if is_hash_in_table(filehash):
+                continue
+            with open(file_location, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            filepath = os.path.normpath(file_location)
+            filename = file.filename
+            uploaded_files.append({
+                "filename": file.filename,
+                "message": f"Upload successful: {filename}"
+            })
+            filename, filetype = os.path.splitext(filename)
+            filetype = filetype.lstrip(".")
+            if is_video_file(filepath):
+                thumbnail = extract_thumbnail(filepath)
+                duration = get_video_duration(filepath)
+            elif is_image_file(filepath):
+                thumbnail = image_to_bytes(filepath)
+                duration = None
+            else:
+                thumbnail = None
+                duration = None
+            add_file(filehash, filepath, username, True, filename, filetype, file.size, thumbnail, duration)
+        return {"files": uploaded_files}
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
-
-@app.post("/colorgrader/type") #not working yet
+@app.post("/colorgrader/type") 
 async def upload_type(data : dict):
     global filter_id
     filter_id = data.get("filter_id")
     print(f"Received filter: {filter_id}")
     return {"message": f"Filter '{filter_id}' received"}
-
-@app.post("/colorgrader/confirmation")
-async def return_colorgraded_media():
-    image_path = f'uploads/{uploaded_file.file_name}{uploaded_file.file_type}'
-    image = cv2.imread(image_path)
-    color_graded_image = color_grade_image(image, filter_id)
-    output_path = "uploads/color_graded_output.jpg"
-    cv2.imwrite(output_path, color_graded_image)
-    return FileResponse(output_path, media_type='image/jpeg', filename=f"processed_{uploaded_file.file_name}") 
 
 
 @app.get("/get-username-by-session")
@@ -221,13 +214,30 @@ async def read_profile(request: Request, username: str):
     return templates.TemplateResponse("user.html", context)
 
 @app.post("/logout")
-async def logout(request: Request, response: Response):
+async def logout(request: Request, response: Response):                                                                                                                                                                                                  
     session_id = request.cookies.get("session_id")
     if not session_id:
         return RedirectResponse(url="/")
     remove_session_from_db(session_id)
     response.delete_cookie("session_id")
     return {"message": "Logged out successfully"}
+
+@app.get("/my-files-information")
+async def get_file_informations(request: Request, response: Response):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    file_list = []
+    user = get_user_by_session(request.cookies.get("session_id"))
+    username = user[1]
+    user_dir = UPLOAD_DIR / username
+    user_upload_dir = user_dir / "uploaded"
+    if not user_upload_dir.exists():
+        return f"<h1>No files found for user: {username}</h1>"
+    for file in user_upload_dir.iterdir():
+        file_path = str(user_upload_dir / file.name)
+        file_list.append([file.name, get_hash_by_path(file_path), file.stat().st_size])
+    return JSONResponse(content={"files": file_list})
 
 @app.get("/files", response_class=HTMLResponse)
 async def list_user_files(request: Request):
@@ -237,9 +247,27 @@ async def list_user_files(request: Request):
     user_upload_dir = user_dir / "uploaded"
     if not user_upload_dir.exists():
         return f"<h1>No files found for user: {username}</h1>"
-    files = [str(file.name) for file in user_upload_dir.iterdir() if file.is_file()]
+    files = []
+    for file in user_upload_dir.iterdir():
+        file_path = os.path.normpath(user_upload_dir) + "\\" + str(file.name)
+        properties = get_file_properties(file_path, username)
+        properties.pop("thumbnail")
+        files.append(properties)
     return JSONResponse(content={"files": files})
 
+@app.get("/thumbnail/{filehash}")
+async def get_thumbnail(request: Request, filehash: str):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")         
+    file_path = get_file_path_by_hash(filehash)
+    username = get_user_by_session(session_id)[1]
+    thumbnail = get_file_properties(file_path, username)["thumbnail"]
+    thumbnail = Image.open(io.BytesIO(thumbnail))
+    thumbnail_stream = io.BytesIO()
+    thumbnail.save(thumbnail_stream, format="PNG")
+    thumbnail_stream.seek(0)
+    return StreamingResponse(thumbnail_stream, media_type="image/png")
 @app.get("/file/content/{filehash}")
 async def serve_file_page(filehash: str):
     file_path = get_file_path_by_hash(filehash)
@@ -251,7 +279,7 @@ async def serve_file_page(filehash: str):
     if mime_type is None:
         raise HTTPException(status_code=415, detail="Unsupported file type")
     try:
-        return FileResponse(file_path, media_type="video")
+        return FileResponse(file_path, media_type=mime_type)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="HTML page not found")
 
@@ -297,6 +325,7 @@ async def convert(request: Request, service: str, options: str, filehash: str,):
         print("Return Code:", result.returncode)
         print("Standard Output:", result.stdout)
         print("Standard Error:", result.stderr)
+        increase_amount_of_converted_files(session_id, 1)
         return {"msg": create_unique_file_hash(get_user_by_session(session_id)[1],)}#create entry in db with count for converted data
     if service == "stt":
         _, file_extension = os.path.splitext(file_path)
@@ -363,25 +392,38 @@ async def delete_file(request: Request, filehash: str):
     except Exception as e:
         print(f"An error occurred while deleting the file: {e}")
         raise HTTPException(status_code=404, detail=f"File not found")
-@app.post("/convert")
-async def convert_file(select_value: SelectValue):
-    filetype = select_value.filetype
-    videocodec = select_value.videocodec
-    audiocodec = select_value.audiocodec
-    videobitrate = select_value.videobitrate
-    audiobitrate = select_value.audiobitrate
-    resolution = select_value.resolution
-    framerate = select_value.framerate
-    original_file_path = save_to
-    converted_file_name = os.path.join(UPLOAD_DIR, uploaded_file.file_name + "-converted." + filetype)
-    #command for converting using ffmpeg
-    command = convert(original_file_path, converted_file_name, vc = videocodec, ac = audiocodec, vb = videobitrate, ab = audiobitrate, resolution = resolution, framerate = framerate) #ogg should be converted with high vb
-    #running command in powershell
-    result = subprocess.run(command, shell=True, capture_output=True, text=True, encoding = "utf-8")    
-    try:       
-        return FileResponse(path=converted_file_name, filename=f"converted_file.{filetype}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/update-privacy/{filehash}/{privacy}")
+async def update_privacy(request: Request, filehash: str, privacy: str):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    if get_user_by_session(session_id)[1] != get_username_by_filehash(filehash):
+        return RedirectResponse(url="/")
+    update_privacy_db(filehash, privacy)
+    print("updated privacy settings")
+    return{"msg":"successful"}
+@app.get("/converter/{combined_filehashes}", response_class=HTMLResponse)
+async def get_converter(request: Request, combined_filehashes: str):
+    session_id = request.cookies.get("session_id")
+    if not session_id:
+        return RedirectResponse(url="/")
+    filehashes = combined_filehashes.split("+")
+    context = {"request": request}
+    for filehash in filehashes:
+        if get_user_by_session(session_id)[1]!= get_username_by_filehash(filehash):
+            return RedirectResponse(url="/") 
+    context["filehashes"] = filehashes
+    return templates.TemplateResponse("converter.html", context)
+
+@app.get("/filetype/check/{combined_filehashes}", response_model=dict)
+async def check_file_type(combined_filehashes: str):
+    filehashes = combined_filehashes.split("+")
+    filetypes = [get_file_type_by_hash(filehash) for filehash in filehashes]
+    unique_filetypes = set(filetypes)
+    if len(unique_filetypes) == 1:
+        return {"all_same": True, "filetype": unique_filetypes.pop()}
+    return {"all_same": False}
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000)
 

@@ -1,25 +1,45 @@
+document.addEventListener("DOMContentLoaded", async () => {
+    const filePath = window.location.pathname;
+    const fileHash = filePath.split("/").pop(); 
 
-const path = window.location.pathname; // e.g., "/file/asfasdfvasdvfaw45tpuihsededrpoit"
-const fileHash = path.split("/file/")[1];
+    if (!fileHash) {
+        document.getElementById("content-display").innerHTML = "<p>No file hash provided.</p>";
+        return;
+    }
 
-// Get elements
-const videoPlayer = document.getElementById("videoPlayer");
-const loadingMessage = document.getElementById("loadingMessage");
-const videoFileName = document.getElementById("videoFileName");
+    try {
+        // Fetch metadata and file content
+        const metadataResponse = await fetch(`/file/${fileHash}`);
+        if (!metadataResponse.ok) {
+            throw new Error("File not found");
+        }
 
-// Show loading message
-loadingMessage.style.display = "block";
 
-// Fetch and set the video source
-const videoUrl = `/file/content/${fileHash}`;
-videoPlayer.src = videoUrl; // Set video source directly
-videoFileName.textContent = `Now playing: ${fileHash}`; // Display the hash as the file name
+        const contentResponse = await fetch(`/file/content/${fileHash}`);
+        const contentType = contentResponse.headers.get("Content-Type");
 
-// Handle video load events
-videoPlayer.oncanplay = function () {
-    loadingMessage.style.display = "none"; // Hide loading message when the video is ready to play
-};
-
-videoPlayer.onerror = function () {
-    loadingMessage.textContent = "Failed to load video. Please try again later.";
-};
+        const contentDisplay = document.getElementById("content-display");
+        if (contentType.startsWith("video/")) {
+            const video = document.createElement("video");
+            video.src = `/file/content/${fileHash}`;
+            video.controls = true;
+            contentDisplay.appendChild(video);
+        } else if (contentType.startsWith("image/")) {
+            const img = document.createElement("img");
+            img.src = `/file/content/${fileHash}`;
+            contentDisplay.appendChild(img);
+        } else if (contentType.startsWith("text/")) {
+            const text = await contentResponse.text();
+            const pre = document.createElement("pre");
+            pre.textContent = text;
+            contentDisplay.appendChild(pre);
+        } else {
+            const fallback = document.createElement("div");
+            fallback.id = "fallback-icon";
+            fallback.textContent = "📁";
+            contentDisplay.appendChild(fallback);
+        }
+    } catch (error) {
+        document.getElementById("content-display").innerHTML = `<p>${error.message}</p>`;
+    }
+});

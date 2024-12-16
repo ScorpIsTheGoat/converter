@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player</title>
+    <title>File Viewer</title>
     <link rel="stylesheet" href="/static/specific_file.css">
 </head>
 <body>
     <header>
-        <h1>Video Player</h1>
+        <h1>File Viewer</h1>
     </header>
-
-    <div class="video-container">
-        <video id="videoPlayer" controls>
-            <source id="videoSource" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <div id="loadingMessage" class="loading">Loading video...</div>
-    </div>
-
-    <div class="file-info">
-        <p>Video File: <span id="videoFileName"></span></p>
-    </div>
-
+    <main id="file-viewer">
+        <div class="metadata">
+            <p><strong>File Hash:</strong> <span id="file-hash"></span></p>
+            <p><strong>Uploaded:</strong> <span id="uploaded-time"></span></p>
+            <p><strong>Size:</strong> <span id="file-size"></span></p>
+        </div>
+        <div id="content-display">
+            <!-- Content will be dynamically loaded here -->
+        </div>
+    </main>
     <script src="/static/specific_file.js"></script>
 </body>
 </html>

@@ -1,42 +1,48 @@
-/* Basic Styles */
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: #f5f5f5;
+    color: #333;
 }
 
 header {
-    background-color: #333;
+    background-color: #0078d4;
     color: white;
-    padding: 10px;
+    padding: 1rem;
+    text-align: center;
 }
 
-h1 {
-    margin: 0;
+main {
+    padding: 2rem;
 }
 
-.video-container {
-    margin: 20px;
-    position: relative;
-    display: inline-block;
+.metadata {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    padding: 1rem;
 }
 
-#videoPlayer {
+.metadata p {
+    margin: 0.5rem 0;
+}
+
+#content-display {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    text-align: center;
+}
+
+video, img {
     max-width: 100%;
-    width: 80%;
-    margin-bottom: 20px;
+    height: auto;
 }
 
-.loading {
-    font-size: 18px;
-    color: #666;
-    display: none;
-}
-
-.file-info {
-    margin-top: 20px;
-    font-size: 18px;
-    color: #333;
+#fallback-icon {
+    font-size: 2rem;
+    color: #888;
 }
