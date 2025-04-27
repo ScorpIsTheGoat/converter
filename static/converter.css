@@ -1,33 +1,505 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
+/*
+html{
+  max-width: 1920px; 
+  max-height: 1080px;
+  overflow: hidden;
+}
+*/
+/* General Reset */
+* {
+  margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: "Arial", sans-serif;
 }
 
-h1 {
-  color: #333;
+/* Background Animation */
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-.file-hashes {
-  margin-bottom: 20px;
-}
-
-.buttons {
+/* Body Styling */
+body {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  background-size: 300% 300%;
+  animation: gradientBG 10s ease infinite;
+  color: #ddd;  /* Light gray text for better contrast */
 }
 
-button {
-  padding: 10px 20px;
-  font-size: 16px;
+/* Additional elements remain unchanged */
+
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  display: grid;
+  grid-template-rows: 100px 50px 50px 400px 200px;
+  
+}
+#title-text{
+  grid-row: 1;
+  text-align: center;
+  align-content: center;
+  font-size: 40px;
+  font-weight: 1000;
+}
+#converter-text{
+  grid-row: 2;
+  text-align: center;
+  align-content: center;
+  font-size: 20px;
+  font-weight: 500;
+}
+.button-container{
+  grid-row: 4;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr 2.5fr 2.5fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+#filetype-button{
+  grid-row: 1;
+  grid-column: 2
+}
+#subtitler-button{
+  grid-row: 1;
+  grid-column: 3;
+}
+#upscaler-button{
+  grid-row: 2;
+  grid-column: 2
+}
+#colorgrader-button{
+  grid-row: 2;
+  grid-column: 3;
+}
+.button-container button {
+  padding: 30px 30px;
+  width: 100%;
+  height: 100%; 
+  justify-content: center; 
+  align-items: center;  
+  font-size: 40px;
+  font-weight: 500;
   cursor: pointer;
   border: none;
   border-radius: 5px;
-  background-color: #007BFF;
+  background-color: #4e4646;
   color: white;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.button-container button:hover{
+  background-color: #413b3b;
+}
+.file-hashes{
+  grid-row: 5;
 }
 
-button:hover {
+#subtitle-options{
+  grid-row: 1;
+  text-align: center;
+  align-content: center;
+  font-size: 20px;
+  font-weight: 500;
+}
+#optionsDiv{
+  grid-row: 4;
+  display: grid;
+  gap: 10px;
+}
+#optionsDiv button{
+  padding: 10px 10px;
+  width: 50%;
+  height: 50%; 
+  justify-content: center; 
+  align-items: center;  
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+#action-options{
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  justify-content: center; 
+  align-items: center;  
+}
+#action-options button:focus{
+  outline: 2px solid rgb(116, 226, 116);
+  outline-offset: 2px;
+}
+#transcribe-button-cell{
+  grid-column: 1;
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+}
+#transcribe-button{
+  color: white;
+  background-color: rgb(78, 29, 194);
+}
+#translate-button-cell{
+  grid-column: 2;
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+}
+#translate-button{ 
+  color: white;
+  background-color: rgb(78, 29, 194);
+}
+#language-options{
+  grid-row: 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#model-options{
+  grid-row: 6;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  justify-content: center;
+  align-items: center;
+}
+
+
+#tiny-button-cell{
+  grid-column: 1;
+  display: flex;
+  justify-content: center; 
+  align-items: center;  
+  text-align: center;
+}
+#tiny-button{ 
+  color: white;
+  background-color: rgb(78, 29, 194);
+}
+#small-button-cell{
+  grid-column: 2;
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+  text-align: center; 
+}
+#small-button{ 
+  color: white;
+  background-color: rgb(78, 29, 194);
+}
+#medium-button-cell{
+  grid-column: 3;
+  display: flex;
+  justify-content: center; 
+  align-items: center;  
+  text-align: center;
+}
+#medium-button{ 
+  color: white;
+  background-color: rgb(78, 29, 194);
+}
+#large-button-cell{
+  grid-column: 4;
+  display: flex;
+  justify-content: center; 
+  align-items: center;  
+  text-align: center; 
+}
+#large-button{ 
+  color: white;
+  background-color: rgb(78, 29, 194);
+}
+
+#action-text{
+  grid-row: 1;
+  text-align: center;
+}
+#language-text{
+  grid-row: 3;
+  text-align: center;
+}
+#model-text{
+  grid-row: 5;
+  text-align: center;
+}
+.selected{
+  outline: 2px solid rgb(116, 226, 116);
+  outline-offset: 2px;
+}
+#container{
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 4fr 1fr;
+
+}
+#files-cell{
+  grid-column: 2;
+  display:grid;
+  grid-template-rows: 2;
+}
+#files{
+  grid-row: 1;
+  display: grid;
+  grid-row: 1fr 3fr 1fr 1fr 3fr;
+}
+
+
+#convert-cell{
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}
+
+#add-files-button-cell{
+  grid-column: 1;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#convert-button-cell{
+  grid-column: 2;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#add-files-button{
+  display: flex;             
+  justify-content: center;   
+  align-items: center;  
+  color: red;
+}
+#convert-button{
+  display: flex;             
+  justify-content: center;   
+  align-items: center;  
+  color: black;
+  background-color: green;
+}
+.file-icon-cell{
+  grid-column: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.filename-cell{
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.filetype-cell{
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.settings-cell{
+  grid-column: 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.file{
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr 1fr;
+  background-color: grey;
+}
+.file-icon-cell{
+  grid-column: 1;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+.filename-cell{
+  grid-column: 2;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.filetype-cell{
+  grid-column: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+}
+.settings-button-cell{
+  grid-column: 4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+.settings-button{
+  width: 20px !important;
+  height: 20px !important;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
+.settings-image{
+  width: 20px !important;
+  height: 20px !important;
+}
+.file-icon{
+  width: 20px;
+  height: 20px
+}
+#next-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  font-size: 16px;
+  background: #28a745;
+  border-radius: 10px;
+}
+
+#next-button:hover {
+  background: #218838;
+}
+#action-options {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;  /* Ensure two buttons are side by side */
+  gap: 10px;
+  justify-content: center; 
+  align-items: center;  
+}
+
+#transcribe-button-cell,
+#translate-button-cell {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+}
+
+#transcribe-button,
+#translate-button {
+  color: white;
+  background-color: rgb(50, 29, 120);  /* Darker color for both buttons */
+  padding: 15px 30px;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#transcribe-button:hover,
+#translate-button:hover {
+  background-color: rgb(40, 20, 100);  /* Darker shade on hover */
+}
+
+#transcribe-button:focus,
+#translate-button:focus {
+  outline: 2px solid rgb(116, 226, 116);
+  outline-offset: 2px;
+}
+.hidden {
+  display: none !important;
+}
+
+/* Submit Button */
+#submit-button-cell{
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+#submit-button {
+  background-color: green; 
+  color: white; 
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  height: 30px;
+  padding: 15px 32px; 
+  font-size: 16px;
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  position: fixed; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  bottom: 20px; 
+  z-index: 9999; 
+}
+
+#step1 {
+  display: flex;
+  gap: 10px; /* Adjust spacing between buttons */
+}
+
+#step1 button {
+  width: 200px; /* Adjust button width */
+  height: 100px; /* Adjust button height */
+  background-color: #007BFF; /* Modern blue */
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#step1 button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  transform: scale(1.05);
+}
+
+#step1 button:active {
+  background-color: #003f7f; /* Even darker blue when clicked */
+  transform: scale(0.98);
+}
+
+#step3 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  gap: 10px; /* Spacing between buttons */
+  justify-content: center;
+  align-items: center;
+  max-width: 300px; /* Adjust as needed */
+  margin: auto;
+}
+
+#step3 button {
+  width: 140px;  /* Adjust button width */
+  height: 60px;  /* Adjust button height */
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#step3 button:hover {
   background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+#step3 button:active {
+  background-color: #003f7f;
+  transform: scale(0.98);
 }

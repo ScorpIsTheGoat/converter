@@ -22,7 +22,7 @@ def apply_monochrome_blend(image):
     
     gray_bgr = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
     
-    blended_image = cv2.addWeighted(colored_img, 0.4, gray_bgr, 0.6, 0)
+    blended_image = cv2.addWeighted(image, 0.4, gray_bgr, 0.6, 0)
     return blended_image
 
 
@@ -152,4 +152,7 @@ def color_grade_image(image, filter_id):
     elif filter_id == "dfn":
         return day_for_night(image)
     else:
-        return image  # Default, unprocessed image
+        return image  
+
+
+

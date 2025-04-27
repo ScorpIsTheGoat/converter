@@ -8,21 +8,23 @@
 </head>
 <body>
   <div class="container">
-    <aside class="file-explorer">
-      <h2>File Explorer</h2>
-      <div id="fileDisplay" class="file-list"></div>
-    </aside>
+    <div class="file-explorer">
+      <h2>Uploaded Files</h2>
+      <div id="uploadedFiles" class="file-list"></div>
+    </div>
+    <div class="file-explorer">
+      <h2>Converted Files</h2>
+      <div id="convertedFiles" class="file-list"></div>
+    </div>
   </div>
-  <button id="startConvertingButton" style="display: none;">Start Converting</button>
+  <button id="startConvertingButton" class="hidden">Start Converting</button>
   <div class="toolbar">
     <button class="toolbar-button sort-button">Sort by ▼</button>
     <button class="toolbar-button filter-button">Filter</button>
     <button class="toolbar-button search-button">Search</button>
     <button class="toolbar-button refresh-button" onclick="fetchFiles()">Refresh</button>
-    <button class="save-privacy-button" onclick="savePrivacy()">Save</button>
+    <button class="toolbar-button save-privacy-button" onclick="savePrivacy()">Save</button>
   </div>
-  
-  <div id="fileDisplay"></div>  
   <script src="/static/files.js"></script>
 </body>
 </html>

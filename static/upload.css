@@ -1,55 +1,263 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
+/* General Reset */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+    font-family: "Arial", sans-serif;
+}
+
+/* Background Styling */
+body {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: flex-start; /* Align to the top of the screen */
     height: 100vh;
-}
-
-.container {
     text-align: center;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    background-size: 300% 300%;
+    animation: gradientBG 10s ease infinite;
+    color: #ddd;
+    overflow-y: auto; /* Allow body to scroll */
 }
 
+/* Top Left Logo */
+.logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.logo img {
+    width: 60px;  /* Adjust size */
+    height: auto;
+    max-height: 100px;
+    filter: invert(1) grayscale(100%) contrast(100%);
+}
+
+/* Upload Container */
+.container {
+    position: fixed; /* Fix the container to the top of the screen */
+    top: 20px;  /* Distance from top */
+    left: 50%;
+    transform: translateX(-50%);  /* Center the container horizontally */
+    max-width: 600px; /* Max width */
+    width: 90%; /* Width responsive to the screen size */
+    background: rgba(20, 20, 20, 0.85);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    height: auto; /* Allow container height to adjust based on content */
+    overflow-y: auto; /* Allow scrolling if content exceeds the max-height */
+}
+
+/* Headings */
 h1 {
+    font-size: 26px;
+    margin-bottom: 10px;
+    color: #f1f1f1;
+    font-weight: bold;
+}
+
+p {
+    font-size: 16px;
+    color: #c4c4c4;
     margin-bottom: 20px;
 }
 
-form {
+/* File Input Button */
+.custom-file-upload {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-input[type="file"] {
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 5px;
-}
-
-button {
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
+    align-items: center;
+    justify-content: center;  /* Centers the text */
+    gap: 12px;  /* Space between icon and text */
+    width: 100%;
+    padding: 12px;
     font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #ff6f91, #ff9671);
+    border: none;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    position: relative;
+    margin-top: 20px;  /* Add space between buttons */
 }
 
-button:hover {
-    background-color: #0056b3;
+.custom-file-upload:hover {
+    background: linear-gradient(135deg, #ff3d69, #ff725e);
+    box-shadow: 0px 6px 14px rgba(255, 61, 105, 0.4);
 }
 
+/* File Icon Inside Choose File Button */
+.file-icon {
+    width: 20px;
+    filter: invert(1);
+    position: absolute;
+    left: 25px; /* Move icon to the left side */
+}
+
+/* Upload Button */
+.button-primary {
+    display: none;
+    align-items: center;
+    justify-content: center;  /* Ensures text remains centered */
+    gap: 12px;  /* Space between icon and text */
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    margin-top: 10px;
+    position: relative; /* Needed for precise control */
+}
+
+.button-primary:hover {
+    background: linear-gradient(135deg, #5700af, #1c65d2);
+    box-shadow: 0px 6px 14px rgba(87, 0, 175, 0.4);
+}
+
+/* Upload Icon Inside Button - Bigger Size */
+.upload-icon {
+    width: 40px;
+    height: 40px;
+    filter: invert(1);
+    position: absolute;
+    left: 15px; /* Move icon to the left side */
+}
+
+/* Status Message */
 #status {
     margin-top: 20px;
     font-size: 14px;
-    color: green;
+    color: #28a745;
+}
+
+/* Delete Button */
+.delete-btn {
+    background: transparent;  /* Remove background */
+    border: none;  /* Remove the border */
+    padding: 0;  /* Remove any padding */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.delete-btn:hover {
+    transform: scale(1.1);  /* Slight scale effect on hover */
+}
+
+/* Red X Icon Inside Delete Button */
+.delete-icon {
+    width: 20px;  /* Adjust the size as needed */
+    height: 20px;
+}
+
+/* File List Container */
+#fileList {
+    max-height: 300px;  /* Maximum height of file list */
+    overflow-y: auto;  /* Enable scrolling for file list when it exceeds the max height */
+    margin-top: 20px;  /* Space between upload button and file list */
+    padding-right: 10px;  /* Add space to the right to avoid text cut off */
+}
+
+/* Hide scrollbar */
+#fileList::-webkit-scrollbar {
+    display: none;
+}
+
+#fileList {
+    -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+    scrollbar-width: none;  /* For Firefox */
+}
+
+/* File Item Styling */
+.file-item {
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: flex-start;  /* Align items to the left */
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc; /* Border around the file item */
+    border-radius: 8px; /* Retain rounded corners */
+    background-color: #222; /* Grey background */
+    width: 100%; /* Make the file item take up the full width of the container */
+    overflow: hidden;
+    height: 60px; /* Set a fixed height for the file item */
+    position: relative;  /* Make sure the icon stays within the item */
+}
+
+/* File Icon Styling (inside the file-item container) */
+.file-item .file-icon {
+    width: 20px; /* Adjust icon size */
+    height: 20px;
+    margin-left: 20px; /* Space between the left side and the file icon */
+}
+
+/* File Info Styling */
+.file-item .file-info {
+    flex: 1; /* Allow the file info to take up remaining space */
+    display: flex;
+    align-items: center; /* Vertically center the text */
+    justify-content: flex-start; /* Align text to the left */
+    margin-left: 100px; /* Increase space between icon and file name */
+}
+
+/* Delete Button Styling */
+.file-item .delete-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px; /* Space between file size and delete button */
+}
+
+/* Delete Icon Styling */
+.file-item .delete-icon {
+    width: 20px; /* Adjust icon size */
+    height: 20px;
+}
+
+/* Animation for Background Gradient */
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+.my-files-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #28a745, #218838);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    text-align: center;
+    text-decoration: none;
+}
+
+.my-files-btn:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    box-shadow: 0px 6px 14px rgba(40, 167, 69, 0.4);
+    transform: scale(1.05);
 }

@@ -11,6 +11,7 @@ import re
 import pytesseract
 import hashlib
 import bcrypt
+import subprocess
 from database import *
 from pdf2image import convert_from_path
 sr = cv2.dnn_superres.DnnSuperResImpl_create()
@@ -22,31 +23,52 @@ pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesserac
 
 
 def create_conversion_string(input_file, output_file, **args):
-    command = f'ffmpeg -i "{input_file}" '
+    command = f'ffmpeg -y -i "{input_file}" '
     print(args)
     if 'vc' in args and args['vc']:
         command += f'-c:v {args["vc"]} '
     if 'ac' in args and args['ac']:
         command += f'-c:a {args["ac"]} '
     if 'vb' in args and args['vb']:
-        command += f'-b:v {args["vb"]} '
+        command += f'-b:v {args["vb"]}K '
     if 'ab' in args and args['ab']:
-        command += f'-b:a {args["ab"]} '
+        command += f'-b:a {args["ab"]}K '
     if 'resolution' in args and args['resolution']:
         command += f'-vf scale={args["resolution"]}'
     if 'framerate' in args and args['framerate']:
         command += f'-r {args["framerate"]} '
     command += f'"{output_file}"'
     return command
+def create_new_filename(filename, options):
+    new_file_name = filename
+    for key, value in options.items():
+        if key == "filetype":
+            continue
+        if value is not None:
+            new_file_name += f"_{value}"
+    return new_file_name
 
-def add_subtitles(input_file, output_file, username, **args):
-    file_name = Path(input_file).stem
-    subtitle_path = os.path.join(UPLOAD_DIR, username, file_name + ".srt")
-    command_create_subtitles = f'whisper "{input_file}" --language {args["language"]} --task {args["task"]} --model {args["model"]} --output_dir uploads/{username} --output_format srt'
-    command_add_subtitles = f'ffmpeg -i "{input_file}" -vf subtitles="{subtitle_path}" "{output_file}"'
-    command_create_subtitles = command_create_subtitles.replace('\\', "/")
-    command_add_subtitles = command_add_subtitles.replace('\\', "/")
-    return command_create_subtitles, command_add_subtitles
+def transcribe(filehash_input_file, **args):
+    if "task" not in args or "model" not in args:
+        return "Missing arguments"
+    input_file_path = get_file_path_by_hash(filehash_input_file)
+    file_name = "Permission"
+    username = get_username_by_filehash(filehash_input_file)
+    if args["language"] == "auto":
+        command_transcribe = f'whisper "{input_file_path}" --task {args["task"]} --model {args["model"]} --output_dir uploads/{username}/converted --output_format srt'
+    else:
+        command_transcribe = f'whisper "{input_file_path}" --language {args["language"]} --task {args["task"]} --model {args["model"]} --output_dir uploads/{username}/converted --output_format srt'
+    print(command_transcribe)
+    result = subprocess.run(command_transcribe.replace('\\', "/"), capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr) 
+    return (os.path.join(UPLOAD_DIR, username, "converted\\" + file_name + ".srt"))
+def add_subtitles(video_file_path, subtitles_file_path):
+    command_add_subtitles = f'ffmpeg -y -i "{video_file_path}" -vf subtitles="{subtitles_file_path}" -c:a copy output.mov'
+    result = subprocess.run(command_add_subtitles, capture_output=True, text=True)
+    print(result.stdout)
+    print(result.stderr)    
+    return 
 def get_video_properties(file_path):
     try:
         probe = ffmpeg.probe(file_path)

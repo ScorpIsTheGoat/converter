@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  fetchFiles(); // Fetch files when the page is loaded
+  fetchFiles(); 
 });
 const updatePrivacyList = {}
 const fileDisplay = document.getElementById("fileDisplay");
@@ -12,104 +12,89 @@ let selectedFiles = new Set();
 // Fetch files from the backend
 async function fetchFiles() {
   try {
-    fileDisplay.innerHTML = "<p>Loading files...</p>"; // Show loading state
+    document.getElementById("uploadedFiles").innerHTML = "<p>Loading files...</p>";
+    document.getElementById("convertedFiles").innerHTML = "<p>Loading files...</p>";
+
     const response = await fetch("/files");
     if (!response.ok) {
       throw new Error("Failed to fetch files.");
     }
+
     const data = await response.json();
-    files = data.files || []; // Assuming the backend sends { files: [...] }
-    displayFiles();
+    const [uploadedFiles, convertedFiles] = data.files || [[], []];
+
+    displayFiles(uploadedFiles, "uploadedFiles");
+    displayFiles(convertedFiles, "convertedFiles");
   } catch (error) {
     console.error(error);
-    fileDisplay.innerHTML = `<p>Error fetching files: ${error.message}</p>`;
+    document.getElementById("uploadedFiles").innerHTML = `<p>Error: ${error.message}</p>`;
+    document.getElementById("convertedFiles").innerHTML = `<p>Error: ${error.message}</p>`;
   }
 }
 
-// Display files in the list
-async function displayFiles() {
-  fileDisplay.innerHTML = ""; // Clear existing content
+function displayFiles(files, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = ""; // Clear previous content
 
   if (files.length === 0) {
-    fileDisplay.innerHTML = "<p>No files available.</p>";
+    container.innerHTML = "<p>No files available.</p>";
     return;
   }
 
-  files.forEach((file, index) => {
+  files.forEach((file) => {
     const listItem = document.createElement("div");
     listItem.classList.add("file-item");
 
-    // Extract file properties
-    const { hash: filehash, path: filepath, username, private: isPrivate, 
-            file_name: filename, file_type: filetype, file_size: filesize, 
-            duration, date } = file;
-    const readableFileSize = formatFileSize(filesize);
-    
+    const { hash: filehash, file_name: filename, file_size: filesize, file_type: filetype, private: privacy } = file;
+
     listItem.innerHTML = `
-      <div class="file-checkbox">
-        <input type="checkbox" data-index="${index}" class="file-select-checkbox">
+      <div class="file-thumbnail">
+        <img src="/thumbnail/${filehash}" alt="Thumbnail for ${filename}" onerror="this.src='/static/default-thumbnail.png';" />
       </div>
       <div class="file-info">
-        <strong>${filename}</strong> <!-- Display the file name -->
-        <span>${readableFileSize}</span>
+        <strong class="file-name">${filename}</strong>
+        <span>${formatFileSize(filesize)}</span>
         <span>${filetype}</span>
-        <span>${date}</span>
-      </div>
-      <div class="file-privacy">
-        <label for="privacy-toggle-${index}">Privacy:</label>
-        <select id="privacy-toggle-${index}" class="privacy-toggle">
-          <option value="public" ${isPrivate ? "" : "selected"}>Public</option>
-          <option value="private" ${isPrivate ? "selected" : ""}>Private</option>
-        </select>
-        
       </div>
       <div class="file-actions">
-        <button class="view-button" onclick="viewFile('${filehash}')">View</button>
-        <button class="download-button" onclick="downloadFile('${filehash}')">Download</button>
+        <button class="delete-button" id="delete-${filehash}">Delete</button>
+        <select class="privacy-select" id="privacy-${filehash}">
+          <option value="public" ${privacy === 0 ? 'selected' : ''}>Public</option>
+          <option value="private" ${privacy === 1 ? 'selected' : ''}>Private</option>
+        </select>
+      </div>
+      <div class="file-checkbox">
+        <input type="checkbox" id="checkbox-${filehash}" />
       </div>
     `;
 
-    // Fetch the thumbnail and dynamically create the image element
-    fetch(`/thumbnail/${filehash}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.blob(); // Convert response to Blob
-      })
-      .then(imageBlob => {
-        const imageUrl = URL.createObjectURL(imageBlob); // Create a URL for the blob
+    const filenameElement = listItem.querySelector(".file-name");
+    filenameElement.addEventListener("click", () => {
+      window.location.href = `/file/${filehash}`;
+    });
 
-        // Create the thumbnail container and image element
-        const thumbnailContainer = document.createElement("div");
-        thumbnailContainer.classList.add("file-thumbnail");
+    const deleteButton = listItem.querySelector(`#delete-${filehash}`);
+    deleteButton.addEventListener("click", () => {
+      deleteFile(filehash);
+    });
 
-        const thumbnailImg = document.createElement("img");
-        thumbnailImg.src = imageUrl; // Set the image source
-        thumbnailImg.alt = "Thumbnail"; // Set alt text
-        thumbnailContainer.appendChild(thumbnailImg); // Add image to container
+    const privacySelect = listItem.querySelector(`#privacy-${filehash}`);
+    privacySelect.addEventListener("change", (event) => {
+      updatePrivacy(filehash, event.target.value);
+    });
 
-        // Insert the thumbnail container into the list item
-        listItem.insertBefore(thumbnailContainer, listItem.querySelector(".file-info"));
-      })
-      .catch(error => {
-        console.error("Error fetching thumbnail:", error);
-      });
+    const checkbox = listItem.querySelector(`#checkbox-${filehash}`);
+    checkbox.addEventListener("change", (event) => {
+      toggleSelection(filehash, event.target.checked);
+    });
 
-    // Add event listener for checkbox change
-    const checkbox = listItem.querySelector(".file-select-checkbox");
-    checkbox.addEventListener("change", (e) => toggleSelection(index, e.target.checked));
-    const privacyToggle = listItem.querySelector(`#privacy-toggle-${index}`);
-    privacyToggle.addEventListener("change", (e) => updatePrivacy(filehash, e.target.value));
-    // Append the list item to the display container
-    fileDisplay.appendChild(listItem);
+    container.appendChild(listItem);
   });
 }
 
-function toggleSelection(index, isChecked) {
-  const filehash = files[index].hash; 
 
-  if (isChecked) {
+function toggleSelection(filehash, isChecked) {
+    if (isChecked) {
     selectedFiles.add(filehash);
   } else {
     selectedFiles.delete(filehash);
@@ -148,9 +133,9 @@ document.querySelector(".search-button").addEventListener("click", () => {
   }
 });
 
-// Sort files by name (ascending)
+
 function sortFiles() {
-  files.sort((a, b) => a[0].localeCompare(b[0])); // Assuming file[0] contains the file name
+  files.sort((a, b) => a[0].localeCompare(b[0]));
   displayFiles();
 }
 
@@ -181,6 +166,25 @@ function updatePrivacy(filehash, privacy) {
     delete updatePrivacyList[filehash];
   } else {
     updatePrivacyList[filehash] = privacy;
+  }
+}
+async function deleteFile(filehash) {
+  if (confirm("Are you sure you want to delete this file?")) {
+    try {
+      const response = await fetch(`/delete/${filehash}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete file.");
+      }
+
+      // Refresh the file list after deletion
+      fetchFiles();
+    } catch (error) {
+      console.error(error);
+      alert("There was an error deleting the file.");
+    }
   }
 }
 function savePrivacy() {

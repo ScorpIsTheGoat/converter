@@ -1,48 +1,125 @@
+/* General Styling */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f5f5f5;
-    color: #333;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    background-size: 300% 300%;
+    animation: gradientBG 10s ease infinite;
+    color: #ddd;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
+/* Background Animation */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Header */
 header {
+    width: 100%;
     background-color: #0078d4;
     color: white;
     padding: 1rem;
     text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
 }
 
+/* Main Content */
 main {
-    padding: 2rem;
+    width: 100vw;
+    height: calc(100vh - 80px); /* Adjust for header */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
 
+/* Container (Stacked Layout) */
+.container {
+    display: flex;
+    flex-direction: column; /* Stacks metadata above content */
+    width: 90vw;
+    max-width: 800px; /* Ensures good readability */
+    gap: 20px;
+    align-items: center;
+}
+
+/* Metadata Section (Above the Image) */
 .metadata {
-    background: #fff;
+    width: 100%;
+    background: rgba(20, 20, 20, 0.85);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
+    max-height: 20vh; /* Prevents it from taking too much space */
+    overflow-y: auto;
 }
 
+/* Metadata Text */
 .metadata p {
     margin: 0.5rem 0;
+    color: #c4c4c4;
 }
 
+/* Content Display (Below Metadata) */
 #content-display {
-    background: #fff;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(20, 20, 20, 0.85);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
+    max-height: 70vh; /* Prevents image from taking full screen */
+    overflow: hidden;
 }
 
+/* Video & Image */
 video, img {
     max-width: 100%;
-    height: auto;
+    max-height: 50vh; /* Keeps it smaller than the screen */
+    border-radius: 8px;
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.4);
+    object-fit: contain; /* Keeps aspect ratio */
 }
 
+/* Fallback Icon */
 #fallback-icon {
     font-size: 2rem;
     color: #888;
+}
+
+.metadata {
+    display: flex;
+    justify-content: center;  /* Space columns out */
+    gap: 20px;  /* Optional space between columns */
+    width: 100%;  /* Ensure it takes full width of the parent container */
+}
+
+.metadata-column {
+    width: 48%;  /* Each column takes 48% of the container width */
+}
+
+.metadata p {
+    margin-bottom: 10px; /* Space between metadata items */
+}
+
+strong {
+    font-weight: bold;
 }

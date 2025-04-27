@@ -1,45 +1,56 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Services</title>
+    <title>Join Media Services</title>
     <link rel="stylesheet" href="../static/styles.css">
-    <script src="../static/script.js"></script>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="static/images/convert-3209.svg" alt="Logo" />
-        </div>
-        <nav>
-            <ul class="nav-links">
-                <a href="/">Home</a>
-                <a href="converter">Converter</a>
-                <a href="subtitler">Subtitler</a>
-                <a href="colorgrader">ColorGrader</a>
-                <a href="upscaler">Upscaler</a>
-            </ul>
-        </nav>
+    <div class="logo">
+        <img src="static/images/convert-3209.svg" alt="Logo">
+    </div>
+
+    
+    <div id="profile-icon-container"></div>
+    <div id="dropdown-menu">
+        <a href="/profile/${sessionId}" class="dropdown-item">
+            <img src="static/images/edit.svg" alt="Profile Icon" class="dropdown-icon">
+            Edit Profile
+        </a>
+        <a href="/settings" class="dropdown-item">
+            <img src="static/images/settings.svg" alt="Settings Icon" class="dropdown-icon">
+            Settings
+        </a>
+        <a href="/my-files" class="dropdown-item">
+            <img src="static/images/folder.svg" alt="My Files Icon" class="dropdown-icon">
+            My Files
+        </a>
+        <a href="/favorites" class="dropdown-item">
+            <img src="static/images/favorite.svg" alt="Favorites Icon" class="dropdown-icon">
+            My Favorites
+        </a>
+        <a href="/friends" class="dropdown-item">
+            <img src="static/images/friend.svg" alt="Friends Icon" class="dropdown-icon">
+            Friends
+        </a>
+        <a href="#" class="dropdown-item logout" id="logout-link">
+            <img src="static/images/logout.svg" alt="Logout Icon" class="dropdown-icon logout">
+            Sign Out
+        </a>
+    </div>
+    <div class="func-buttons">
+        <a href="upload" id="upload-btn" class="button">Upload</a>
+    </div>
+    <div class="container">
         <div class="auth-buttons">
-            <a href="login" id="login-btn" class="button">Login</a>
-            <a href="register" id="register-btn" class="button">Register</a>   
-                
+            <h1>Unlock More Features</h1>
+            <p>Create an account to access premium tools, save your progress, and get the best experience.</p>
+            <a href="register" id="register-btn" class="button button-primary">Create an Account</a>
+            <a href="login" id="login-btn" class="button button-secondary">Login</a>
         </div>
-    </header>
-    <div class="grid-container">
-        <div class="converter-paragraph">
-            Tired of the wrong filetype?
-        </div>
-        <div class="subtitler-paragraph">
-            Want to subtitle your videos?
-        </div>
-        <div class="colorgrader-paragraph">
-            Add some cinematic filter to your video and make it seem like a movie
-        </div>
-        <div class="upscaler-paragraph">
-            The resolution of your image is to bad? Use ur upscaler
-        </div>
-    </div>    
+    </div>
+
+    <!-- Include the script.js file -->
+    <script src="../static/script.js"></script>
 </body>
 </html>

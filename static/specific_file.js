@@ -9,12 +9,50 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
         // Fetch metadata and file content
-        const metadataResponse = await fetch(`/file/${fileHash}`);
+        const metadataResponse = await fetch(`/metadata/${fileHash}`);
         if (!metadataResponse.ok) {
             throw new Error("File not found");
         }
+        const metadata = await metadataResponse.json();
+
+        // Get the metadata object (assuming it is under 'metadata' key)
+        const validMetadata = metadata.metadata;
+
+        // Get the metadata display container
+        const metadataDisplay = document.getElementById("metadata-display");
 
 
+        // Check each key in the metadata and display it
+        for (const key in validMetadata) {
+            if (validMetadata.hasOwnProperty(key)) {
+                const element = document.getElementById(key);
+                value = validMetadata[key];
+                if (key === "FileSize") {
+                    // Convert bytes to MB or GB
+                    if (value >= 1073741824) { // If the value is greater than or equal to 1 GB
+                        value = (value / 1073741824).toFixed(2) + " GB";
+                    } else if (value >= 1048576) { // If the value is greater than or equal to 1 MB
+                        value = (value / 1048576).toFixed(2) + " MB";
+                    } else if (value >= 1024) { // If the value is greater than or equal to 1 KB
+                        value = (value / 1024).toFixed(2) + " KB";
+                    } else {
+                        value = value + " bytes"; // Just show bytes if the value is too small
+                    }
+                }
+                if (key === "Duration" && value !== "none") {
+                    const totalSeconds = parseInt(value, 10); // Ensure the value is an integer
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = totalSeconds % 60;
+                    value = `${hours > 0 ? (hours < 10 ? '0' + hours : hours) + ':' : ''}${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                }
+                // Set the innerHTML of the element if it exists
+                if (element) {
+                    // Handle null or undefined values
+                    element.innerHTML += value
+                }
+            }
+        }
         const contentResponse = await fetch(`/file/content/${fileHash}`);
         const contentType = contentResponse.headers.get("Content-Type");
 
@@ -33,6 +71,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             const pre = document.createElement("pre");
             pre.textContent = text;
             contentDisplay.appendChild(pre);
+        }  else if (contentType.startsWith("audio/")) {
+            const audio = document.createElement("audio");
+            audio.src = `/file/content/${fileHash}`;
+            audio.controls = true;
+            contentDisplay.appendChild(audio);
         } else {
             const fallback = document.createElement("div");
             fallback.id = "fallback-icon";

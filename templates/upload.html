@@ -3,25 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Uploader</title>
-    <link rel="stylesheet" href="/static/upload.css">
+    <title>Upload Files</title>
+    <link rel="stylesheet" href="../static/upload.css">
 </head>
 <body>
+
+    <!-- Top Left Logo -->
+    <div class="logo">
+        <img src="../static/images/convert-3209.svg" alt="Logo">
+    </div>
+
     <div class="container">
-        <h1>Upload Files</h1>
+        <h1>Upload Your Files</h1>
+        <p>Select and upload files securely.</p>
+
         <form id="uploadForm">
-            <input type="file" id="fileInput" name="files" multiple>
-            <button type="submit" id="uploadButton">Upload</button>
+            <!-- Upload Button -->
+            <button type="submit" id="uploadButton" class="button-primary">
+                <img src="../static/images/upload.svg" alt="Upload Icon" class="upload-icon">
+                Upload
+            </button>
+
+            <!-- Add Files Button -->
+            <label for="fileInput" class="custom-file-upload">
+                <img src="../static/images/file.svg" alt="File Icon" class="file-icon">
+                <span>Add Files</span>
+                <input type="file" id="fileInput" name="files" multiple hidden>
+            </label>
         </form>
+
+        <!-- File List -->
+        <!-- Inside the file list container -->
+        <div id="fileList">
+        </div>
+
+        <!-- Status -->
         <div id="status"></div>
     </div>
-    <div class="file-info">
-        <p>Video File: <span id="videoFileName">N/A</span></p>
-        <p>File Hash: <span id="videoFileHash">N/A</span></p>
-        <p>File Size: <span id="videoFileSize">N/A</span></p>
-        <p>Uploading Date: <span id="uploadingDate">N/A</span></p>
-        <p>Private: <span id="isPrivate">N/A</span></p>
-    </div>
-    <script src="/static/upload.js"></script>
+
+    <script src="../static/upload.js"></script>
 </body>
 </html>

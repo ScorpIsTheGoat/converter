@@ -1,61 +1,88 @@
-/* Global Styles */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', Arial, sans-serif;
   margin: 0;
   padding: 0;
+  width: 100vw;
   height: 100vh;
-  background-color: #1e1e2f;
-  color: #ffffff;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+  background-size: 300% 300%;
+  animation: gradientBG 10s ease infinite;
+  color: #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two equal columns */
+  width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  gap: 20px; /* Space between columns */
+  padding: 20px;
+  align-items: start;
+  justify-content: center;
 }
+
+
+
 
 .file-explorer {
-  width: 100%;
-  background-color: #28293d;
-  padding: 10px;
-  overflow-y: auto;
-}
-
-.file-explorer h2 {
-  color: #ffffff;
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.file-list {
+  background-color: #F5F5F5; /* Light theme panel background */
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
 }
 
-/* File Item Styles */
+.file-explorer h2 {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 20px;
+  border-bottom: 2px solid #CCC;
+  text-align: center;
+  color: #000000; /* Light theme heading */
+}
+
+.file-list {
+  margin-top: 15px;
+  overflow-y: auto;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .file-item {
   display: flex;
   align-items: center;
-  background-color: #34344e;
+  background-color: #E0E0E0; /* Light theme file item */
   padding: 10px;
-  margin: 5px 0;
-  border-radius: 6px;
+  border-radius: 8px;
+  transition: background-color 0.3s;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 .file-item:hover {
-  background-color: #444465;
+  background-color: #D6D6D6; /* Light theme hover */
 }
 
 .file-thumbnail {
-  width: 60px;
-  height: 60px;
-  background-color: #5c5c81;
-  border-radius: 4px;
+  width: 50px;
+  height: 50px;
+  background-color: #C0C0C0; /* Light theme thumbnail */
+  border-radius: 5px;
   margin-right: 15px;
-  overflow: hidden;
-  flex-shrink: 0;
 }
 
 .file-thumbnail img {
@@ -66,175 +93,74 @@ body {
 
 .file-info {
   flex-grow: 1;
-  display: flex;
-  flex-direction: column;
 }
 
 .file-info strong {
   font-size: 16px;
-  margin-bottom: 5px;
+  color: #000000; /* Light theme text */
 }
 
 .file-info span {
+  display: block;
   font-size: 12px;
-  color: #c4c4c4;
+  color: #666666; /* Light theme metadata */
 }
 
-.file-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.file-actions button {
-  padding: 5px 10px;
-  font-size: 12px;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
-.file-actions .view-button {
-  background-color: #00c853;
-}
-
-.file-actions .download-button {
-  background-color: #007bff;
-}
-
-.file-actions button:hover {
-  opacity: 0.8;
-}
-
-/* Privacy Toggle Styles */
-.file-privacy {
-  margin-left: 20px;
-  display: flex;
-  align-items: center;
-}
-
-.file-privacy label {
-  font-size: 14px;
-  margin-right: 10px;
-  color: #ffffff;
-}
-
-.privacy-toggle {
-  padding: 5px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  background-color: #fff;
-  cursor: pointer;
-}
-
-.privacy-toggle option {
-  padding: 5px;
-}
-
-/* Toolbar Styles */
 .toolbar {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 15px;
-  gap: 10px;
+  justify-content: space-between;
+  padding: 15px;
+  background-color: #F0F0F0; /* Light theme toolbar */
+  border-top: 2px solid #CCC;
 }
 
 .toolbar-button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  background: #343a40;
-  color: white;
-  cursor: pointer;
+  padding: 8px 16px;
   font-size: 14px;
-  transition: background-color 0.3s ease;
+  color: #000000; /* Light theme button text */
+  background-color: #E8E8E8; /* Light theme button */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .toolbar-button:hover {
-  background: #495057;
+  background-color: #DADADA; /* Light theme button hover */
 }
 
-.toolbar-button:active {
-  background: #212529;
-}
-.file-privacy {
-  margin-left: 20px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.file-privacy label {
-  font-size: 14px;
-  color: #ffffff;
-  font-weight: bold;
-}
-
-.privacy-toggle {
-  padding: 6px 12px;
-  font-size: 14px;
-  border: 1px solid #666;
-  border-radius: 5px;
-  background-color: #34344e;
-  color: #ffffff;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.privacy-toggle option {
-  padding: 5px;
-  background-color: #28293d;
-  color: #ffffff;
-}
-
-.privacy-toggle:hover {
-  background-color: #444465;
-}
-
-.privacy-toggle:focus {
-  outline: none;
-  border-color: #007bff;
-  background-color: #444465;
-}
-.save-privacy-button {
-  padding: 6px 12px;
-  font-size: 14px;
+#startConvertingButton {
+  display: block;
+  margin: 20px auto;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #007BFF; /* Consistent button color */
+  color: #FFFFFF;
   border: none;
-  border-radius: 5px;
-  background-color: #28a745;
-  color: white;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-left: 10px;
+  transition: background-color 0.3s;
 }
 
-.save-privacy-button:hover {
-  background-color: #218838;
+#startConvertingButton:hover {
+  background-color: #0056B3;
 }
 
-.save-privacy-button:active {
-  background-color: #1e7e34;
-}
-
-.save-privacy-button:focus {
-  outline: none;
-}
 .hidden {
   display: none;
 }
 
-#startConvertingButton {
-  display: inline-block;
-  padding: 10px 20px;
-  background-color: #007BFF;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
 
-#startConvertingButton:hover {
-  background-color: #0056b3;
+  .toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #startConvertingButton {
+    margin-top: 10px;
+  }
 }

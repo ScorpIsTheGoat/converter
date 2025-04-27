@@ -3,28 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Hashes Tool</title>
+    <title>Converter</title>
     <link rel="stylesheet" href="/static/converter.css">
 </head>
 <body>
-    <h1>File Hashes and Tools</h1>
-
+    <div id="title-text">Converter</div>
+    <div id="converter-text">Choose your desired service</div>
+    <div class="button-container">
+        <div id ="filetype-button">
+            <button onclick="handleClick('FileType')">FileType</button>
+        </div>
+        <div id="colorgrader-button">
+            <button onclick="handleClick('ColorGrader')">ColorGrader</button>
+        </div>
+        <div id="subtitler-button">
+            <button onclick="handleClick('Subtitler')">Subtitler</button>
+        </div>
+        <div id="upscaler-button">
+            <button onclick="handleClick('Upscaler')">Upscaler</button>
+        </div>
+        
+    </div>
+    
+    <div id="optionsDiv"></div>
+    <!---
     <div class="file-hashes">
-        <h2>File Hashes:</h2>
+        <h3>File Hashes:</h2>
         <ul id="hashList">
             {% for hash in filehashes %}
                 <li>{{ hash }}</li>
             {% endfor %}
         </ul>
+    </div> -->
+    <div id="submit-button-cell">
+        <button id="submit-button" class="hidden" onclick="submitSubtitlerOptions()">Submit</button>
     </div>
-
-    <div class="buttons">
-        <button onclick="handleClick('FileType')">FileType</button>
-        <button onclick="handleClick('ColorGrader')">ColorGrader</button>
-        <button onclick="handleClick('Subtitler')">Subtitler</button>
-        <button onclick="handleClick('Upscaler')">Upscaler</button>
-    </div>
-
     <script src="/static/converter.js"></script>
 </body>
 </html>

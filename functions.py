@@ -11,6 +11,11 @@ import bcrypt
 from database import *
 from PIL import Image
 import io
+from mutagen.mp3 import MP3
+from mutagen.wavpack import WavPack
+from mutagen.flac import FLAC
+from mutagen.oggvorbis import OggVorbis
+from mutagen.aac import AAC
 from moviepy.editor import VideoFileClip
 sr = cv2.dnn_superres.DnnSuperResImpl_create()
 path = "ai-models/EDSR_x2.pb"
@@ -21,15 +26,9 @@ pytesseract.pytesseract.tesseract_cmd = "C:/Program Files/Tesseract-OCR/tesserac
 
 
 
-def create_unique_file_hash(username: str, filesize: str, filetype: str) -> str:
-    hash_input = f"{username}{filesize}{filetype}"
-    file_hash = hashlib.sha256()
-    file_hash.update(hash_input.encode('utf-8'))
-    return file_hash.hexdigest()
-
-def generate_file_hash(file_hash, videobitrate, audiobitrate, videocodec, audiocodec, resolution, framerate, filetype):
-    hash_input = f"{file_hash}|{videobitrate}|{audiobitrate}|{videocodec}|{audiocodec}|{resolution}|{framerate}|{filetype}"
-    hash_object = hashlib.sha256(hash_input.encode())
+def generate_file_hash(filename: str, username: str, extra: str):
+    hash_input = f"{filename}|{username}|{extra}"
+    hash_object = hashlib.sha256(hash_input.encode('utf-8'))
     return hash_object.hexdigest()
 
 def validate_password(password: str) -> bool:
@@ -116,6 +115,8 @@ def get_video_duration(file_path):
 def image_to_bytes(image_path):
     try:
         with Image.open(image_path) as img:
+            if img.mode in ("LA", "P", "RGBA"):  # LA (grayscale + alpha) or P (palette-based)
+                img = img.convert("RGB")
             byte_io = io.BytesIO()
             img.save(byte_io, format="JPEG")
             byte_io.seek(0)
@@ -133,3 +134,49 @@ def is_image_file(filepath):
     except IOError:
         # If IOError is raised, it means the file is not a valid image
         return False
+
+def is_audio_file(filepath):
+    return filepath.lower().endswith(('.mp3', '.wav', '.aac', '.flac', '.ogg'))
+
+def is_text_file(filepath):
+    """
+    Returns True if the file is a text file, based on its extension or content.
+    """
+    # Check file extension
+    _, ext = os.path.splitext(filepath)
+    if ext.lower() in [".txt", ".md", ".csv", ".json", ".html", ".css", ".js", ".xml", ".yaml", ".log"]:
+        return True
+
+    # Check file content for text-like data (non-binary content)
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            # Try to read the first few lines to check for non-binary content
+            first_bytes = f.read(1024)
+            # If it succeeds and doesn't throw an exception, we assume it's a text file
+            if any(ord(char) > 127 for char in first_bytes):  # Check if there's a non-ASCII character
+                return False  # It has binary data, so it's not a text file
+            return True
+    except (UnicodeDecodeError, IOError):
+        # If we can't read it as text, it's likely a binary file
+        return False
+        
+def get_audio_duration(filepath):
+    """Returns the duration of an audio file in seconds."""
+    try:
+        if filepath.lower().endswith(".mp3"):
+            audio = MP3(filepath)
+        elif filepath.lower().endswith(".wav"):
+            audio = WavPack(filepath)
+        elif filepath.lower().endswith(".flac"):
+            audio = FLAC(filepath)
+        elif filepath.lower().endswith(".ogg"):
+            audio = OggVorbis(filepath)
+        elif filepath.lower().endswith(".aac"):
+            audio = AAC(filepath)
+        else:
+            return "Unknown"
+        
+        return round(audio.info.length, 2)  # Rounds to 2 decimal places
+    except Exception as e:
+        print(f"Error getting audio duration: {e}")
+        return "Unknown"

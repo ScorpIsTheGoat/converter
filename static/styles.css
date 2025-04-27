@@ -1,86 +1,324 @@
-body {
-    font-family: Arial, sans-serif;
+/* General Reset */
+* {
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    box-sizing: border-box;
+    font-family: "Arial", sans-serif;
 }
 
-header {
+/* Background Animation */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes floatToTopLeft {
+    0% {
+        transform: translate(-50%, -50%) scale(2); /* Start at center and smaller */
+        top: 50%;
+        left: 50%;
+    }
+    100% {
+        transform: translate(0, 0) scale(0.6); /* Move to top-left corner without scaling up */
+        top: 0;
+        left: 0;
+    }
+}
+.float-to-top-left {
+    animation: floatToTopLeft 0.7s ease-out forwards;
+}
+
+/* Body Styling */
+body {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    background-color: #333;
-    padding: 10px 20px;
-    color: white;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    background-size: 300% 300%;
+    animation: gradientBG 10s ease infinite;
+    color: #ddd;  /* Light gray text for better contrast */
+}
+
+/* Logo Styling */
+.logo {
+    position: absolute;
+    top: 10px;
+    left: 10px;
 }
 
 .logo img {
-    height: 50px;
+    width: 100px;
+    filter: invert(1) grayscale(100%) contrast(100%); /* Make the logo white */
 }
-.button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #555;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
+
+/* Container Styling */
+.container {
+    max-width: 400px;
+    background: rgba(20, 20, 20, 0.85);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Heading and Paragraph Styling */
+h1 {
+    font-size: 26px;
+    margin-bottom: 10px;
+    color: #f1f1f1;
+    font-weight: bold;
+}
+
+p {
     font-size: 16px;
-    cursor: pointer;
+    color: #c4c4c4;
+    margin-bottom: 20px;
 }
 
-.button:hover {
-    background-color: #777;
-}
-
-nav {
-    flex-grow: 1;
-    margin-left: 40px;
-}
-
-.nav-links {
-    list-style: none;
+/* Auth Buttons Styling */
+.auth-buttons {
     display: flex;
-    margin: 0;
-    padding: 0;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
 }
 
-.nav-links li {
-    margin-right: 40px;
+
+/* Button Styling */
+/* Button Styling */
+.button {
+    text-decoration: none;         /* Remove underline from links */
+    display: inline-block;         /* Make it behave like a button */
+    width: 200px;                  /* Set the width of the button */
+    padding: 15px 30px;            /* Add more padding for a larger button */
+    border-radius: 8px;            /* Rounded corners */
+    text-align: center;            /* Center the text */
+    font-size: 18px;               /* Larger font size */
+    font-weight: bold;             /* Make the text bold */
+    cursor: pointer;              /* Show a pointer cursor on hover */
+    transition: all 0.3s ease-in-out; /* Smooth transition for hover effects */
+    border: 2px solid #fff;        /* White border for modern look */
+    background-color: white;       /* Set the button's background to white */
+    color: #333;                   /* Dark text color */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow for 3D effect */
 }
 
-.nav-links a {
-    text-decoration: none;
+/* Hover Effect */
+.button:hover {
+    background-color: #333;        /* Change background to black */
+    color: white;                  /* Invert text color */
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.4); /* Darker shadow on hover */
+}
+
+/* Focus Effect */
+.button:focus {
+    outline: none;                 /* Remove default focus outline */
+    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.6); /* Add subtle focus glow */
+}
+
+
+/* New Func Buttons Container */
+.func-buttons {
+    display: flex;
+    gap: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none; /* Initially hidden */
+}
+
+/* Animation for Upload Button */
+@keyframes floatInFromTop {
+    0% {
+        opacity: 0;
+        transform: translateY(-100vh);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Animation for Convert Button */
+@keyframes floatInFromBottom {
+    0% {
+        opacity: 0;
+        transform: translateY(100vh);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Applying the animations */
+.float-in-top {
+    animation: floatInFromTop 0.7s ease-out forwards;
+}
+
+.float-in-bottom {
+    animation: floatInFromBottom 0.7s ease-out forwards;
+}
+
+/* Button Colors */
+.button-primary {
+    align-items: center;
+
+    background: linear-gradient(135deg, #ff6f91, #ff9671);
     color: white;
-    font-size: 18px;
-    padding: 20px
+    box-shadow: 0px 4px 10px rgba(255, 111, 145, 0.3);
 }
 
-.nav-links a:hover {
+.button-primary:hover {
+    background: linear-gradient(135deg, #ff3d69, #ff725e);
+    box-shadow: 0px 6px 14px rgba(255, 61, 105, 0.4);
+}
+
+.button-secondary {
+    align-items: center;
+
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+    box-shadow: 0px 4px 10px rgba(106, 17, 203, 0.3);
+}
+
+.button-secondary:hover {
+    background: linear-gradient(135deg, #5700af, #1c65d2);
+    box-shadow: 0px 6px 14px rgba(87, 0, 175, 0.4);
+}
+/* File List Container */
+#fileList {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.7); /* Darker background */
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.4);
     color: #ddd;
+    font-size: 14px;
 }
 
-.auth-buttons button {
-    margin-left: 10px;
-    background-color: #555;
-    color: white;
+/* Individual File Item */
+.file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1); /* Light background for file */
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease-in-out;
+}
+
+.file-item:hover {
+    background: rgba(255, 255, 255, 0.15); /* Hover effect */
+}
+
+/* File Info */
+.file-item span {
+    flex: 1;
+    color: #fff;
+}
+
+/* Delete Button */
+.file-item button {
+    background: linear-gradient(135deg, #ff6f91, #ff9671);
     border: none;
-    padding: 10px 20px;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
     cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+}
+
+.file-item button:hover {
+    background: linear-gradient(135deg, #ff3d69, #ff725e);
+    box-shadow: 0px 6px 14px rgba(255, 61, 105, 0.4);
+}
+
+/* File Icon (optional) */
+.file-item .file-icon {
+    width: 16px;
+    height: 16px;
+    filter: invert(1);
+    margin-right: 10px;
+}
+.profile-icon {
+    font-size: 24px; /* Adjust the size */
+    background-color: #f0f0f0; /* Background color */
+    border-radius: 50%; /* Round shape */
+    padding: 10px; /* Adjust padding for size */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow */
+    transition: transform 0.3s ease-in-out;
+    z-index: 1;
+}
+
+.profile-icon:hover {
+    transform: scale(1.1); /* Slight zoom effect on hover */
+}
+.profile-icon, .user-name {
+    cursor: pointer; /* Change the cursor to a pointer when hovering over the icon or name */
+}
+.user-name{
+    z-index: 1;
+}
+.user-name.active {
+    color: black; /* Change to black when active */
+}
+
+#dropdown-menu {
+    display: none;
+    position: absolute;
+    border-radius: 15px 0px 0px 15px;
+    top: 0; /* Make it align with the top of the screen */
+    right: 0; /* Align to the right edge */
+    width: 10%; /* Make the dropdown span the entire width */
+    height: 100%; /* Make the dropdown take up the full height of the screen */
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    padding-top: 80px;
+    z-index: 0;
+    box-sizing: border-box;
+}
+
+
+
+.dropdown-item {
+    display: block;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
     font-size: 16px;
 }
-
-.auth-buttons button:hover {
-    background-color: #777;
+.dropdown-item.logout {
+    margin-top: 550px;  /* Push this item to the bottom */
+    color: red;        /* Set the text color to red */
 }
-.grid-container{
-    display: grid;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr 1fr;
-    width: 100%;
-    gap: 10px; 
-    height: calc(100vh - 100px); 
+.dropdown-item.logout img {
+    filter: invert(28%) sepia(86%) saturate(469%) hue-rotate(328deg) brightness(90%) contrast(90%);
+}
+.dropdown-item.logout:hover {
+    color: red;    /* Dark red text on hover */
+    background-color: #f1b0b7;  /* Slightly darker red background on hover */
+    
+}
+.dropdown-icon {
+    width: 16px;  /* Adjust size as needed */
+    height: 16px;  /* Adjust size as needed */
+    margin-right: 8px;  /* Space between icon and text */
 }
 
-
-
-
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+    color: #007bff;
+}

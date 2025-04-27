@@ -1,14 +1,14 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <link rel="stylesheet" href="/static/login.css">
+    <title>Login</title>
+    <link rel="stylesheet" href="../static/login.css">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
+    <div class="auth-container">
+        <h2>Welcome Back</h2>
+        <p>Log in to access your account.</p>
         <form id="loginForm">
             <div class="input-group">
                 <label for="username">Username</label>
@@ -18,10 +18,11 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit">Login</button>
+            <button type="submit" class="button-primary">Login</button>
         </form>
+        <p>Don't have an account? <a href="register">Sign up</a></p>
         <div id="error-message"></div>
     </div>
-    <script src="/static/login.js"></script>
+    <script src="../static/login.js"></script>
 </body>
 </html>

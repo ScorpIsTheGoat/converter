@@ -19,7 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 username: username,
                 password: password,
             }),
-            credentials: 'include'  // Ensure cookies are included in the request
+            
         });
 
         if (response.ok) {
